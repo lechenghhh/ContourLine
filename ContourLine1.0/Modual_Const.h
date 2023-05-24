@@ -1,4 +1,6 @@
-
+/*
+  常量
+*/
 //V.oct table
 const static float V_OCT_PROGMEM[1230] = {
   0,

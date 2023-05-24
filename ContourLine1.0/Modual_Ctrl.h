@@ -1,3 +1,7 @@
+/*
+  电位器 按钮 控制功能
+*/
+
 #define KNOB_MAX_RANGE 1024  //旋钮最大值
 #define FUNCTION_LENGTH 10   //总菜单数
 int KNOB;
