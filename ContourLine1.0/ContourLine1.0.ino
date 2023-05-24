@@ -1,4 +1,4 @@
-//主程序
+//主程序 逻辑
 #include "Modual_LEDDisplay.h"
 #include "Modual_Ctrl.h"
 #include "Modual_Const.h"
