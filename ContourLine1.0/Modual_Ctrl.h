@@ -42,9 +42,9 @@ int getCtrl(int old_param[]) {
   // Serial.println(digitalRead(BTN1));  //btn1
   // Serial.println(digitalRead(BTN2));  //btn2
 
-  // Serial.print(knobEnable);          //btn2
-  // Serial.println(btnHover);         //btn2
-  // Serial.println(btnTime);          //btn2
+  // Serial.print(knobEnable);   //btn2
+  // Serial.println(btnHover);   //btn2
+  // Serial.println(btnTime);    //btn2
   // Serial.println(old_param);  //btn2
 
   //按下事件
@@ -73,8 +73,8 @@ int getCtrl(int old_param[]) {
     Serial.println(knobEnable);  //btn2
   }
 
-  // Serial.print("old_param ");      //btn2
-  // Serial.print(old_param[POSITION]);         //btn2
+  // Serial.print("old_param ");            //btn2
+  // Serial.print(old_param[POSITION]);     //btn2
   // Serial.print("   analogRead(KNOB) ");  //btn2
   // Serial.println(analogRead(KNOB));      //btn2
 
