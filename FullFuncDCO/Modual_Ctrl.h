@@ -9,7 +9,7 @@ int BTN1;
 int BTN2;
 int KNOB_CHANGE_RANGE;
 int DEF_LV;
-int POSITION = 0;  //modual ctrl position 当前菜单的位置
+// int position = 0;  //modual ctrl position 当前菜单的位置
 
 int btnHover = 0;    //按下事件判断
 int btnTime = 0;     //长按事件判断
@@ -37,15 +37,14 @@ void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int de
   传入旋钮当前值 
   返回判断后的值
 */
-int getCtrl(int old_param[]) {
+int getPostition(int position) {
   // Serial.println(analogRead(KNOB));   //knob
   // Serial.println(digitalRead(BTN1));  //btn1
   // Serial.println(digitalRead(BTN2));  //btn2
 
-  // Serial.print(knobEnable);   //btn2
   // Serial.println(btnHover);   //btn2
   // Serial.println(btnTime);    //btn2
-  // Serial.println(old_param);  //btn2
+
 
   //按下事件
   if (digitalRead(BTN1) != DEF_LV) {
@@ -56,15 +55,15 @@ int getCtrl(int old_param[]) {
   if (digitalRead(BTN1) == DEF_LV && btnHover == 1) {
     //长按按钮事件
     if (btnTime > 50) {
-      POSITION = 0;
+      position = 0;
       Serial.println("btn long");  //knob
     }
     //短按按钮事件
     else {
-      if (FUNCTION_LENGTH - 1 <= POSITION) {
-        POSITION = -1;
+      if (FUNCTION_LENGTH - 1 <= position) {
+        position = -1;
       }
-      POSITION++;
+      position++;
       Serial.println("btn short");  //knob
     }
     btnHover = 0;
@@ -74,18 +73,23 @@ int getCtrl(int old_param[]) {
   }
 
   // Serial.print("old_param ");            //btn2
-  // Serial.print(old_param[POSITION]);     //btn2
   // Serial.print("   analogRead(KNOB) ");  //btn2
   // Serial.println(analogRead(KNOB));      //btn2
 
+
+  return position;
+}
+
+int getParam(int old_param) {
+  // Serial.print(knobEnable);   //btn2
+  // Serial.println(old_param);  //btn2
   //旋钮事件
-  int knob_dec = analogRead(KNOB) - old_param[POSITION];  //检测旋钮进入原参数范围
+  int knob_dec = analogRead(KNOB) - old_param;  //检测旋钮进入原参数范围
   if (-KNOB_CHANGE_RANGE < knob_dec && knob_dec < KNOB_CHANGE_RANGE) {
     knobEnable = 1;
   }
   if (knobEnable == 1) {  //进入范围后 则可以调节当前参数
-    old_param[POSITION] = analogRead(KNOB);
+    old_param = analogRead(KNOB);
   }
-
-  return old_param[POSITION];
+  return old_param;
 }

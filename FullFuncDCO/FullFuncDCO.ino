@@ -23,6 +23,7 @@
 #define BTN1_PIN 12         //按钮引脚
 #define BTN2_PIN 13         //按钮引脚
 
+int POSITION = 0;//菜单下标
 String function[FUNCTION_LENGTH] = {
   "Wave", "Shape", "Pitch", "Vol", "Cutof", "Reso.", "Attk.", "Decay", "Sus.", "Rel.",
   // "FM", "AM"
@@ -81,14 +82,14 @@ int Reso = 0;
 int FM = 0;
 int AM = 0;
 void updateControl() {
-  
-  param[POSITION] = getCtrl(param);  //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
-  displayLED(ledGroup[POSITION]);    //display  //用以展示控制
+
+  POSITION = getPostition(POSITION);
+  param[POSITION] = getParam(param[POSITION]);  //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
+  displayLED(ledGroup[POSITION]);               //display  //用以展示控制
 
   Serial.print(function[POSITION] + param[POSITION] + " | ");  //func param
-  for (int ii = 0; ii < 10; ii++) {
-    Serial.print(function[ii] + param[ii] + " ");  //func param
-  }
+  // for (int ii = 0; ii < 10; ii++)
+  //   Serial.print(function[ii] + param[ii] + " ");  //func param
   Serial.println("                  ");
 
   //在这里修改参数 先做运算 再设置配置
