@@ -25,21 +25,22 @@
 
 String function[FUNCTION_LENGTH] = {
   "Wave", "Shape", "Pitch", "Vol", "Cutof", "Reso.", "Attk.", "Decay", "Sus.", "Rel.",
-  // "L1F", "L1A", "L1Wav", "L1Pit", "L1Vol", "L1Cut", "L1Res"  //function[10]
+  // "FM", "AM"
+  // "L1F", "L1A", // "L1Wav", "L1Vol", "L1Cut", "L1Res"  //function[10]
 };
 int param[FUNCTION_LENGTH] = {
   0,
-  0,
+  3,
   440,
   512,
-  1000,
-  100,
-  5,
-  127,
+  972,
+  128,
+  4,
+  128,
   256,
-  5,
-  // 5,  //L1F
-  // 0,
+  12,
+  // 0,  //FM
+  // 0,  //AM
   // 0,
   // 0,
   // 0,
@@ -60,8 +61,6 @@ Oscil<HALFSIN256_NUM_CELLS, AUDIO_RATE> aHSin(HALFSIN256_DATA);
 Oscil<CHEBYSHEV_4TH_256_NUM_CELLS, AUDIO_RATE> aCheb(CHEBYSHEV_4TH_256_DATA);
 Oscil<WHITENOISE8192_NUM_CELLS, AUDIO_RATE> aNos(WHITENOISE8192_DATA);
 
-Oscil<SIN256_NUM_CELLS, CONTROL_RATE> lfo(SIN256_DATA);
-
 ADSR<AUDIO_RATE, AUDIO_RATE> envelope;
 LowPassFilter lpf;
 
@@ -78,20 +77,19 @@ int Pitch = 0;
 int Vol = 0;
 int Cutof = 0;
 int Reso = 0;
-int L1F = 0;
-int L1A = 0;
-int L1Wav = 0;
-int L1Pit = 0;
-int L1Vol = 0;
-int L1Cut = 0;
-int L1Res = 0;
-void updateControl() {
 
+int FM = 0;
+int AM = 0;
+void updateControl() {
+  
   param[POSITION] = getCtrl(param);  //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);    //display  //用以展示控制
 
-  Serial.println(function[POSITION] + param[POSITION]);  //func param
-  Serial.println("                       ");
+  Serial.print(function[POSITION] + param[POSITION] + " | ");  //func param
+  for (int ii = 0; ii < 10; ii++) {
+    Serial.print(function[ii] + param[ii] + " ");  //func param
+  }
+  Serial.println("                  ");
 
   //在这里修改参数 先做运算 再设置配置
   Wave = param[0] >> 7;  //波表  将1023分成8个波表类型
@@ -102,11 +100,9 @@ void updateControl() {
   lpf.setCutoffFreq(Cutof);
   lpf.setResonance(Reso);
 
-  lfo.setFreq(param[10]);
-  L1A = param[11];
-  // Vol = Vol + lfo.next();
-  // Serial.print("                  ");  //func param
-  // Serial.println(lfo.next());          //func param
+  // lfo.setFreq(param[10]);
+  // int oct_cv_val = analogRead(2);
+  // int toneFreq = (2270658 + Pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[oct_cv_val]))));
 
   //设置波形 设置频率
   switch (Wave) {
@@ -139,10 +135,11 @@ void updateControl() {
 
 int updateAudio() {
   // return aSin.next()  << 6;  // 8 bits scaled up to 14 bits
-  Q15n16 vibrato = (Q15n16)L1A * lfo.next();
+  // Q15n16 vibrato = (Q15n16)L1A * lfo.next();
   switch (Wave) {
     default:
       return lpf.next((aSin.next() * Vol) >> 8);  // return an int signal centred around 0
+      // return MonoOutput::fromNBit(16, (aSin.phMod(Q15n16(param[12] * analogRead(3) >> 8)) / 2 * Vol) * (analogRead(4) / 2));
     case 1:
       return lpf.next((aTra.next() * Vol) >> 8);
     case 2:
