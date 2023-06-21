@@ -1,10 +1,11 @@
 //主程序 逻辑
-#include "Module_LEDDisplay.h"//自定义库封装led 控制 常量
+#include "Module_LEDDisplay.h"  //自定义库封装led 控制 常量
 #include "Module_Ctrl.h"
 #include "Module_Const.h"
+#include "Module_SimpleEG.h"
 
 #include <MozziGuts.h>
-#include <Oscil.h>  // oscillator template
+#include <Oscil.h>               // oscillator template
 #include <tables/sin256_int8.h>  // sine table for oscillator
 #include <tables/triangle_analogue512_int8.h>
 #include <tables/square_no_alias512_int8.h>
@@ -37,7 +38,7 @@ int POSITION = 0;  //菜单下标
 String function[FUNCTION_LENGTH] = {
   "Wave", "Shape", "Pitch", "Vol", "Cutof", "Reso.", "Attk.", "Decay", "Sus.", "Rel.",
   // "FMAmt", "AM"
-  // "L1F", "L1A", 
+  // "L1F", "L1A",
 };
 int param[FUNCTION_LENGTH] = {
   0,
@@ -63,6 +64,7 @@ void setup() {
   initCtrl(KNOB_PIN, 50, BTN1_PIN, BTN2_PIN, HIGH);  //初始化控制参数
   initLED(2, 3, 4, 5, 6, 7, 8);                      //初始化led引脚
   startMozzi(CONTROL_RATE);                          //启动mozzi库
+  initEG(13, 10);                                    //初始化包络 引脚定义
 }
 
 int Wave = 0;
@@ -134,6 +136,8 @@ void updateControl() {
     envelope.update();
     Vol = envelope.next() * Vol / 255;  // 这就是它与音频速率包络不同的地方
   }
+
+  generateEG(param[6], param[9], param[8]);
 }
 
 int updateAudio() {
