@@ -38,9 +38,9 @@ void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int de
   返回判断后的值
 */
 int getPostition(int position) {
-  // Serial.println(analogRead(KNOB));   //knob
-  // Serial.println(digitalRead(BTN1));  //btn1
-  // Serial.println(digitalRead(BTN2));  //btn2
+  Serial.println(analogRead(KNOB));   //knob
+  Serial.println(digitalRead(BTN1));  //btn1
+  Serial.println(digitalRead(BTN2));  //btn2
 
   // Serial.println(btnHover);   //btn2
   // Serial.println(btnTime);    //btn2
@@ -71,18 +71,14 @@ int getPostition(int position) {
     knobEnable = 0;
     Serial.println(knobEnable);  //btn2
   }
-
-  // Serial.print("old_param ");            //btn2
-  // Serial.print("   analogRead(KNOB) ");  //btn2
-  // Serial.println(analogRead(KNOB));      //btn2
-
-
   return position;
 }
 
 int getParam(int old_param) {
   // Serial.print(knobEnable);   //btn2
   // Serial.println(old_param);  //btn2
+  // Serial.print("   analogRead(KNOB) ");  //btn2
+  // Serial.println(analogRead(KNOB));      //btn2
   //旋钮事件
   int knob_dec = analogRead(KNOB) - old_param;  //检测旋钮进入原参数范围
   if (-KNOB_CHANGE_RANGE < knob_dec && knob_dec < KNOB_CHANGE_RANGE) {

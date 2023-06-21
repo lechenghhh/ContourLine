@@ -18,15 +18,15 @@
 #include <tables/whitenoise8192_int8.h>
 
 #define FUNCTION_LENGTH 10  //总菜单数
-#define CONTROL_RATE 64     //控制速率
+#define CONTROL_RATE 128    //控制速率
 #define KNOB_PIN 0          //旋钮引脚
 #define BTN1_PIN 12         //按钮引脚
 #define BTN2_PIN 13         //按钮引脚
 
-int POSITION = 0;//菜单下标
+int POSITION = 0;  //菜单下标
 String function[FUNCTION_LENGTH] = {
   "Wave", "Shape", "Pitch", "Vol", "Cutof", "Reso.", "Attk.", "Decay", "Sus.", "Rel.",
-  // "FM", "AM"
+  // "FMAmt", "AM"
   // "L1F", "L1A", // "L1Wav", "L1Vol", "L1Cut", "L1Res"  //function[10]
 };
 int param[FUNCTION_LENGTH] = {
@@ -36,7 +36,7 @@ int param[FUNCTION_LENGTH] = {
   512,
   972,
   128,
-  4,
+  0,
   128,
   256,
   12,
@@ -62,8 +62,8 @@ Oscil<HALFSIN256_NUM_CELLS, AUDIO_RATE> aHSin(HALFSIN256_DATA);
 Oscil<CHEBYSHEV_4TH_256_NUM_CELLS, AUDIO_RATE> aCheb(CHEBYSHEV_4TH_256_DATA);
 Oscil<WHITENOISE8192_NUM_CELLS, AUDIO_RATE> aNos(WHITENOISE8192_DATA);
 
-ADSR<AUDIO_RATE, AUDIO_RATE> envelope;
 LowPassFilter lpf;
+ADSR<AUDIO_RATE, AUDIO_RATE> envelope;
 
 void setup() {
   Serial.begin(115200);                              // 使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -87,7 +87,7 @@ void updateControl() {
   param[POSITION] = getParam(param[POSITION]);  //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);               //display  //用以展示控制
 
-  Serial.print(function[POSITION] + param[POSITION] + " | ");  //func param
+  Serial.print(function[POSITION] + param[POSITION]);  //func param
   // for (int ii = 0; ii < 10; ii++)
   //   Serial.print(function[ii] + param[ii] + " ");  //func param
   Serial.println("                  ");
@@ -101,11 +101,10 @@ void updateControl() {
   lpf.setCutoffFreq(Cutof);
   lpf.setResonance(Reso);
 
-  // lfo.setFreq(param[10]);
-  // int oct_cv_val = analogRead(2);
+  // int oct_cv_val = mozziAnalogRead(2);//这里用v/oct的输入值 用mozzi专用的引脚读取
   // int toneFreq = (2270658 + Pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[oct_cv_val]))));
 
-  //设置波形 设置频率
+  // 设置频率
   switch (Wave) {
     default:
       aSin.setFreq(Pitch);  //设置频率  // aSin.setFreq(analogRead(0));
@@ -132,6 +131,16 @@ void updateControl() {
       aNos.setFreq(Pitch);
       break;
   }
+  //设置包络
+  envelope.setADLevels(255, 255);
+  envelope.setTimes(param[6], param[7], param[8], param[9]);
+  if (digitalRead(13) == 1)
+    envelope.noteOn();
+  else
+    envelope.noteOff();
+  envelope.update();
+  // if (param[9] < 1000)                  //如果release大于1000 则启用持续震荡模式
+  Vol = envelope.next() * Vol / 255;  // 这就是它与音频速率包络不同的地方
 }
 
 int updateAudio() {
@@ -140,7 +149,8 @@ int updateAudio() {
   switch (Wave) {
     default:
       return lpf.next((aSin.next() * Vol) >> 8);  // return an int signal centred around 0
-      // return MonoOutput::fromNBit(16, (aSin.phMod(Q15n16(param[12] * analogRead(3) >> 8)) / 2 * Vol) * (analogRead(4) / 2));
+      // int oct_cv_val = mozziAnalogRead(2);//这里用v/oct的输入值 用mozzi专用的引脚读取 fm测试
+      // return lpf.next(MonoOutput::fromNBit(16, (aSin.phMod(Q15n16(param[11] * oct_cv_val >> 8)) / 2 * Vol)));
     case 1:
       return lpf.next((aTra.next() * Vol) >> 8);
     case 2:

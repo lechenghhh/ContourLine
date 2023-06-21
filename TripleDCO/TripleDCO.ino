@@ -218,7 +218,7 @@ void set_waves() {
   }
 }
 
-void FM_setFreqs(Q16n16 freq2) {
+void FM_setFreqs(Q16n16 freq2) {//freq2=knob_freq
   Q16n16 toneFreq = (2270658 + freq2 * 5000) * pow(2, (pgm_read_float(&(voctpow[oct_cv_val]))));
   mod_freq = ((toneFreq >> 8) * ((p1_pot_val + p1_cv_val) / 2));
   level = ((mod_freq >> 16));
