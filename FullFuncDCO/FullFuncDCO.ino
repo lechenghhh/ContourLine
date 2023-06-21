@@ -1,13 +1,10 @@
 //主程序 逻辑
-#include "Modual_LEDDisplay.h"
-#include "Modual_Ctrl.h"
-#include "Modual_Const.h"
+#include "Module_LEDDisplay.h"//自定义库封装led 控制 常量
+#include "Module_Ctrl.h"
+#include "Module_Const.h"
 
 #include <MozziGuts.h>
 #include <Oscil.h>  // oscillator template
-#include <LowPassFilter.h>
-#include <ADSR.h>
-
 #include <tables/sin256_int8.h>  // sine table for oscillator
 #include <tables/triangle_analogue512_int8.h>
 #include <tables/square_no_alias512_int8.h>
@@ -16,6 +13,8 @@
 #include <tables/halfsin256_uint8.h>
 #include <tables/waveshape_chebyshev_4th_256_int8.h>
 #include <tables/whitenoise8192_int8.h>
+#include <LowPassFilter.h>
+#include <ADSR.h>
 
 #define FUNCTION_LENGTH 10  //总菜单数
 #define CONTROL_RATE 128    //控制速率
@@ -23,11 +22,22 @@
 #define BTN1_PIN 12         //按钮引脚
 #define BTN2_PIN 13         //按钮引脚
 
+Oscil<SIN256_NUM_CELLS, AUDIO_RATE> aSin(SIN256_DATA);
+Oscil<TRIANGLE_ANALOGUE512_NUM_CELLS, AUDIO_RATE> aTra(TRIANGLE_ANALOGUE512_DATA);
+Oscil<SQUARE_NO_ALIAS512_NUM_CELLS, AUDIO_RATE> aSqu(SQUARE_NO_ALIAS512_DATA);
+Oscil<SAW256_NUM_CELLS, AUDIO_RATE> aSaw(SAW256_DATA);
+Oscil<PHASOR256_NUM_CELLS, AUDIO_RATE> aPha(PHASOR256_DATA);
+Oscil<HALFSIN256_NUM_CELLS, AUDIO_RATE> aHSin(HALFSIN256_DATA);
+Oscil<CHEBYSHEV_4TH_256_NUM_CELLS, AUDIO_RATE> aCheb(CHEBYSHEV_4TH_256_DATA);
+Oscil<WHITENOISE8192_NUM_CELLS, AUDIO_RATE> aNos(WHITENOISE8192_DATA);
+LowPassFilter lpf;
+ADSR<AUDIO_RATE, AUDIO_RATE> envelope;
+
 int POSITION = 0;  //菜单下标
 String function[FUNCTION_LENGTH] = {
   "Wave", "Shape", "Pitch", "Vol", "Cutof", "Reso.", "Attk.", "Decay", "Sus.", "Rel.",
   // "FMAmt", "AM"
-  // "L1F", "L1A", // "L1Wav", "L1Vol", "L1Cut", "L1Res"  //function[10]
+  // "L1F", "L1A", 
 };
 int param[FUNCTION_LENGTH] = {
   0,
@@ -42,27 +52,11 @@ int param[FUNCTION_LENGTH] = {
   1024,
   // 0,  //FM
   // 0,  //AM
-  // 0,
-  // 0,
-  // 0,
-  // 0,
-  // 0,
 };  // 给部分数组元素赋值
 bool* ledGroup[FUNCTION_LENGTH] = { Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL };
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_C, Led_R, Led_A, Led_D, Led_S, Led_R };
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7, Led_8, Led_9, Led_0 };
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_A, Led_B, Led_C, Led_D, Led_E, Led_F, Led_G, Led_H, Led_I, Led_J };
-
-Oscil<SIN256_NUM_CELLS, AUDIO_RATE> aSin(SIN256_DATA);
-Oscil<TRIANGLE_ANALOGUE512_NUM_CELLS, AUDIO_RATE> aTra(TRIANGLE_ANALOGUE512_DATA);
-Oscil<SQUARE_NO_ALIAS512_NUM_CELLS, AUDIO_RATE> aSqu(SQUARE_NO_ALIAS512_DATA);
-Oscil<SAW256_NUM_CELLS, AUDIO_RATE> aSaw(SAW256_DATA);
-Oscil<PHASOR256_NUM_CELLS, AUDIO_RATE> aPha(PHASOR256_DATA);
-Oscil<HALFSIN256_NUM_CELLS, AUDIO_RATE> aHSin(HALFSIN256_DATA);
-Oscil<CHEBYSHEV_4TH_256_NUM_CELLS, AUDIO_RATE> aCheb(CHEBYSHEV_4TH_256_DATA);
-Oscil<WHITENOISE8192_NUM_CELLS, AUDIO_RATE> aNos(WHITENOISE8192_DATA);
-LowPassFilter lpf;
-ADSR<AUDIO_RATE, AUDIO_RATE> envelope;
 
 void setup() {
   Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
