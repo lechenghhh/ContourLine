@@ -33,9 +33,8 @@ void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int de
 }
 
 /*
-  获取控制状态
-  传入旋钮当前值 
-  返回判断后的值
+  传入菜单下标
+  返回经过控制逻辑处理后的下标
 */
 int getPostition(int position) {
   Serial.println(analogRead(KNOB));   //knob
