@@ -48,7 +48,7 @@ int param[FUNCTION_LENGTH] = {
   972,
   128,
   0,
-  512,
+  16,
   1024,
   1024,
   // 0,  //FM
@@ -127,8 +127,8 @@ void updateControl() {
   }
   //设置包络
   if (param[9] < 1000) {  //如果release大于1000 则启用持续震荡模式
-    envelope.setADLevels(255, 10);
-    envelope.setTimes(param[6] >> 3, param[7] >> 3, param[8] >> 3, param[9] >> 3);
+    envelope.setADLevels(255, 255);
+    envelope.setTimes(param[6] >> 4, param[7] >> 4, param[8] >> 4, param[9] >> 4);
     if (digitalRead(13) == 1)
       envelope.noteOn();
     else
@@ -137,7 +137,9 @@ void updateControl() {
     Vol = envelope.next() * Vol / 255;  // 这就是它与音频速率包络不同的地方
   }
 
-  generateEG(param[6], param[9], param[8]);
+  // int egLV = generateEG(param[6], param[9], param[8]);
+
+  egPWMOut(Vol);
 }
 
 int updateAudio() {
