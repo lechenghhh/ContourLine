@@ -83,9 +83,9 @@ int generateEG(int atk1, int rel1, int lev1) {
 
 /*pwm输出包络cv*/
 void egPWMOut(int outLevel) {
-  for (int i = 0; i < outLevel / 2; i++) Serial.print("|");
-  Serial.println("\nEG Level: ");  //out
-  Serial.println(outLevel);        //out
+  // for (int i = 0; i < outLevel / 2; i++) Serial.print("|");
+  // Serial.println("\nEG Level: ");  //out
+  // Serial.println(outLevel);        //out
 
   analogWrite(OUT_PIN, outLevel);  //PWM output
 }

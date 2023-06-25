@@ -64,7 +64,7 @@ void setup() {
   initCtrl(KNOB_PIN, 50, BTN1_PIN, BTN2_PIN, HIGH);  //初始化控制参数
   initLED(2, 3, 4, 5, 6, 7, 8);                      //初始化led引脚
   startMozzi(CONTROL_RATE);                          //启动mozzi库
-  initEG(13, 10);                                    //初始化包络 引脚定义
+  initEG(13, 11);                                    //初始化包络 引脚定义
 }
 
 int Wave = 0;
@@ -140,6 +140,7 @@ void updateControl() {
   // int egLV = generateEG(param[6], param[9], param[8]);
 
   egPWMOut(Vol);
+ 
 }
 
 int updateAudio() {
