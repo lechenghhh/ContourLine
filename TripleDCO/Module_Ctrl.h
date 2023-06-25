@@ -3,7 +3,6 @@
 */
 
 #define KNOB_MAX_RANGE 1024  //旋钮最大值
-// #define FUNCTION_LENGTH 10   //总菜单数
 int KNOB;
 int BTN1;
 int BTN2;
