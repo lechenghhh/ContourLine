@@ -1,6 +1,5 @@
 #include <avr/io.h>  //for fast PWM
 
-
 const static byte curve[128] PROGMEM = { 0, 4, 7, 10, 14, 17, 21, 24, 27, 31, 34, 37, 40, 43, 46, 49, 52, 55, 58, 61, 64, 67, 70, 73, 76, 78, 81, 84, 87, 89, 92, 95, 97, 100, 102, 105, 107, 110, 112, 115, 117, 119, 122, 124, 126, 128, 131, 133, 135, 137, 140, 142, 144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 166, 168, 169, 171, 173, 175, 177, 178, 180, 182, 184, 185, 187, 189, 190, 192, 194, 195, 197, 198, 200, 202, 203, 205, 206, 208, 209, 210, 212, 213, 215, 216, 217, 219, 220, 221, 223, 224, 225, 227, 228, 229, 230, 232, 233, 234, 235, 237, 238, 239, 240, 241, 242, 243, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255 };
 
 int TRI_PIN = 0;
@@ -11,6 +10,8 @@ bool old_gate, new_gate;
 int egProgress = 0;       //CH1 count
 int last_out1, out1 = 0;  //如果在释放时间重新触发，CV电压将从线路中间重新启动，而不是从零开始。
 long timer1 = 0;
+
+/*初始化 同时定义输入输出引脚*/
 void initEG(int triggerPin, int egOutPin) {
   TRI_PIN = triggerPin;
   OUT_PIN = egOutPin;
@@ -22,7 +23,9 @@ void initEG(int triggerPin, int egOutPin) {
   delay(50);
 }
 
-void generateEG(int atk1, int rel1, int lev1) {
+
+/*自带的包络生成*/
+int generateEG(int atk1, int rel1, int lev1) {
   int atk2, rel2, lev2;
   old_gate = new_gate;
   new_gate = digitalRead(TRI_PIN);  // trig input
@@ -65,15 +68,24 @@ void generateEG(int atk1, int rel1, int lev1) {
     }
   }
 
-  //CV out //PWM_OUT();
+  //CV out
   //PWM duty setting
   if (egState == 1) {
     out1 = map(out1, 0, 255, last_out1, lev1);
   } else if (egState == 2) {
     out1 = map(out1, 0, 255, 0, lev1);
   }
-  Serial.print("EG Level: ");  //out
-  Serial.println(out1);        //out
+  // PWM_OUT2(out1);
 
-  analogWrite(OUT_PIN, out1);  //PWM output
+  // pwmout123(12);
+  return out1;
+}
+
+/*pwm输出包络cv*/
+void egPWMOut(int outLevel) {
+  for (int i = 0; i < outLevel / 2; i++) Serial.print("|");
+  Serial.println("\nEG Level: ");  //out
+  Serial.println(outLevel);        //out
+
+  analogWrite(OUT_PIN, outLevel);  //PWM output
 }
