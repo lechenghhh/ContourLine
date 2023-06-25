@@ -77,7 +77,7 @@ int FM = 0;
 int AM = 0;
 void updateControl() {
 
-  POSITION = getPostition(POSITION);            //获取菜单下标
+  POSITION = getPostition(POSITION,sizeof(function));            //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);  //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);               //display  //用以展示控制
 

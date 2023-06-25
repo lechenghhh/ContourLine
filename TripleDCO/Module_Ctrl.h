@@ -36,7 +36,7 @@ void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int de
   传入菜单下标
   返回经过控制逻辑处理后的下标
 */
-int getPostition(int position,int functionLength) {
+int getPostition(int position,int FUNCTION_LENGTH) {
   // Serial.println(analogRead(KNOB));   //knob
   // Serial.println(digitalRead(BTN1));  //btn1
   // Serial.println(digitalRead(BTN2));  //btn2
@@ -59,7 +59,7 @@ int getPostition(int position,int functionLength) {
     }
     //短按按钮事件
     else {
-      if (functionLength - 1 <= position) {
+      if (FUNCTION_LENGTH - 1 <= position) {
         position = -1;
       }
       position++;
