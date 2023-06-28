@@ -19,9 +19,14 @@
 
 #define FUNCTION_LENGTH 10  //总菜单数
 #define CONTROL_RATE 128    //控制速率
-#define KNOB_PIN 0          //旋钮引脚
+#define KNOB_PIN 4          //旋钮引脚
 #define BTN1_PIN 12         //按钮引脚
 #define BTN2_PIN 13         //按钮引脚
+#define OUTA_PIN 11         //OUTA引脚
+#define VOCT_PIN 0          //V OCT
+#define IN2_PIN 1           //IN1
+#define IN3_PIN 2           //IN2
+#define IN4_PIN 3           //IN3
 
 Oscil<SIN256_NUM_CELLS, AUDIO_RATE> aSin(SIN256_DATA);
 Oscil<TRIANGLE_ANALOGUE512_NUM_CELLS, AUDIO_RATE> aTra(TRIANGLE_ANALOGUE512_DATA);
@@ -54,8 +59,8 @@ int param[FUNCTION_LENGTH] = {
   // 0,  //FM
   // 0,  //AM
 };  // 给部分数组元素赋值
-bool* ledGroup[FUNCTION_LENGTH] = { Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL };
-// bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_C, Led_R, Led_A, Led_D, Led_S, Led_R };
+// bool* ledGroup[FUNCTION_LENGTH] = { Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL };
+bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_C, Led_R, Led_A, Led_D, Led_S, Led_R };
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7, Led_8, Led_9, Led_0 };
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_A, Led_B, Led_C, Led_D, Led_E, Led_F, Led_G, Led_H, Led_I, Led_J };
 
@@ -64,7 +69,6 @@ void setup() {
   initCtrl(KNOB_PIN, 50, BTN1_PIN, BTN2_PIN, HIGH);  //初始化控制参数
   initLED(2, 3, 4, 5, 6, 7, 8);                      //初始化led引脚
   startMozzi(CONTROL_RATE);                          //启动mozzi库
-  initEG(13, 11);                                    //初始化包络 引脚定义
 }
 
 int Wave = 0;
@@ -129,17 +133,17 @@ void updateControl() {
   if (param[9] < 1000) {  //如果release大于1000 则启用持续震荡模式
     envelope.setADLevels(255, 255);
     envelope.setTimes(param[6] >> 4, param[7] >> 4, param[8] >> 4, param[9] >> 4);
-    if (digitalRead(13) == 1)
+    if (analogRead(3) > 800)
       envelope.noteOn();
     else
       envelope.noteOff();
     envelope.update();
     Vol = envelope.next() * Vol / 255;  // 这就是它与音频速率包络不同的地方
+
+    // int egLV = generateEG(param[6], param[9], param[8]);
+    // egPWMOut(Vol);
+    analogWrite(OUTA_PIN,Vol);
   }
-
-  // int egLV = generateEG(param[6], param[9], param[8]);
-
-  egPWMOut(Vol);
 }
 
 int updateAudio() {
