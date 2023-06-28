@@ -29,10 +29,11 @@ void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int de
   BTN2 = btn2Pin;
   DEF_LV = default_level;
   if (DEF_LV == 1) {
-    pinMode(BTN1, INPUT_PULLUP);
     // pinMode(BTN2, INPUT_PULLUP);//D13引脚会因为无法上拉电阻而导致无法默认高电平 因此手动设置
     if (BTN1 == 13) digitalWrite(BTN1, HIGH);
+    else pinMode(BTN1, INPUT_PULLUP);
     if (BTN2 == 13) digitalWrite(BTN2, HIGH);
+    else pinMode(BTN2, INPUT_PULLUP);
   } else {
     pinMode(BTN1, INPUT);
     pinMode(BTN2, INPUT);
@@ -44,9 +45,9 @@ void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int de
   返回经过控制逻辑处理后的下标
 */
 int getPostition(int position, int functionLength) {
-  Serial.println(analogRead(KNOB));   //knob
-  Serial.println(digitalRead(BTN1));  //btn1
-  Serial.println(digitalRead(BTN2));  //btn2
+  // Serial.println(analogRead(KNOB));   //knob
+  // Serial.println(digitalRead(BTN1));  //btn1
+  // Serial.println(digitalRead(BTN2));  //btn2
 
   // Serial.println(btnHover);   //btn2
   // Serial.println(btnTime);    //btn2

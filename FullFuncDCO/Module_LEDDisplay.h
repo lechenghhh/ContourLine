@@ -60,3 +60,7 @@ void displayLED(bool diplayGroup[]) {
     }
   }
 }
+
+void displayTestPin(int pin) {
+  digitalWrite(pin, LOW);
+}

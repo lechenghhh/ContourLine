@@ -2,7 +2,6 @@
 #include "Module_LEDDisplay.h"  //自定义库封装led 控制 常量
 #include "Module_Ctrl.h"
 #include "Module_Const.h"
-#include "Module_SimpleEG.h"
 
 #include <MozziGuts.h>
 #include <Oscil.h>               // oscillator template
@@ -41,7 +40,7 @@ ADSR<AUDIO_RATE, AUDIO_RATE> envelope;
 
 int POSITION = 0;  //菜单下标
 String function[FUNCTION_LENGTH] = {
-  "Wave", "Shape", "Pitch", "Vol", "Cutof", "Reso.", "Attk.", "Decay", "Sus.", "Rel.",
+  "Wave", "Shape", "Pitch", "Vol", "Cutof", "Reso.", "Attk.", "Decay",
   // "FMAmt", "AM"
   // "L1F", "L1A",
 };
@@ -53,14 +52,12 @@ int param[FUNCTION_LENGTH] = {
   972,
   128,
   0,
-  16,
-  1024,
   1024,
   // 0,  //FM
   // 0,  //AM
 };  // 给部分数组元素赋值
-// bool* ledGroup[FUNCTION_LENGTH] = { Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL };
-bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_C, Led_R, Led_A, Led_D, Led_S, Led_R };
+// bool* ledGroup[FUNCTION_LENGTH] = { Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, };
+bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_F, Led_R, Led_A, Led_D };
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7, Led_8, Led_9, Led_0 };
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_A, Led_B, Led_C, Led_D, Led_E, Led_F, Led_G, Led_H, Led_I, Led_J };
 
@@ -101,7 +98,7 @@ void updateControl() {
   lpf.setResonance(Reso);
 
   // 设置频率
-  // int oct_cv_val = mozziAnalogRead(2);//这里用v/oct的输入值 用mozzi专用的引脚读取
+  // int oct_cv_val = mozziAnalogRead(IN2_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取
   // int toneFreq = (2270658 + Pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[oct_cv_val]))));
   switch (Wave) {
     default:
@@ -130,9 +127,9 @@ void updateControl() {
       break;
   }
   //设置包络
-  if (param[9] < 1000) {  //如果release大于1000 则启用持续震荡模式
+  if (param[7] < 1000) {  //如果release大于1000 则启用持续震荡模式
     envelope.setADLevels(255, 255);
-    envelope.setTimes(param[6] >> 4, param[7] >> 4, param[8] >> 4, param[9] >> 4);
+    envelope.setTimes(param[6] >> 4, param[7] >> 4, param[7] >> 4, param[7] >> 4);
     if (analogRead(3) > 800)
       envelope.noteOn();
     else
@@ -140,9 +137,7 @@ void updateControl() {
     envelope.update();
     Vol = envelope.next() * Vol / 255;  // 这就是它与音频速率包络不同的地方
 
-    // int egLV = generateEG(param[6], param[9], param[8]);
-    // egPWMOut(Vol);
-    analogWrite(OUTA_PIN,Vol);
+    analogWrite(OUTA_PIN, Vol);  //对OUTA_PIN输出pwm
   }
 }
 
@@ -151,7 +146,7 @@ int updateAudio() {
   switch (Wave) {
     default:
       return lpf.next((aSin.next() * Vol) >> 8);  // return an int signal centred around 0
-      // int oct_cv_val = mozziAnalogRead(2);//这里用v/oct的输入值 用mozzi专用的引脚读取 fm测试
+      // int oct_cv_val = mozziAnalogRead(IN2_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取 fm测试
       // return lpf.next(MonoOutput::fromNBit(16, (aSin.phMod(Q15n16(param[11] * oct_cv_val >> 8)) / 2 * Vol)));
     case 1:
       return lpf.next((aTra.next() * Vol) >> 8);
