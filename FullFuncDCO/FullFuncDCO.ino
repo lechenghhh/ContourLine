@@ -16,16 +16,16 @@
 #include <LowPassFilter.h>
 #include <ADSR.h>
 
-#define FUNCTION_LENGTH 10  //总菜单数
-#define CONTROL_RATE 128    //控制速率
-#define KNOB_PIN 4          //旋钮引脚
-#define BTN1_PIN 12         //按钮引脚
-#define BTN2_PIN 13         //按钮引脚
-#define OUTA_PIN 11         //OUTA引脚
-#define VOCT_PIN 0          //V OCT
-#define IN2_PIN 1           //IN1
-#define IN3_PIN 2           //IN2
-#define IN4_PIN 3           //IN3
+#define FUNCTION_LENGTH 8  //总菜单数
+#define CONTROL_RATE 128   //控制速率
+#define KNOB_PIN 4         //旋钮引脚
+#define BTN1_PIN 12        //按钮引脚
+#define BTN2_PIN 13        //按钮引脚
+#define OUTA_PIN 11        //OUTA引脚
+#define IN0_PIN 0          //IV OCT
+#define IN1_PIN 1          //FM
+#define IN2_PIN 2          //Gate
+#define IN3_PIN 3          //Mod
 
 Oscil<SIN256_NUM_CELLS, AUDIO_RATE> aSin(SIN256_DATA);
 Oscil<TRIANGLE_ANALOGUE512_NUM_CELLS, AUDIO_RATE> aTra(TRIANGLE_ANALOGUE512_DATA);
@@ -98,7 +98,7 @@ void updateControl() {
   lpf.setResonance(Reso);
 
   // 设置频率
-  // int oct_cv_val = mozziAnalogRead(IN2_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取
+  // int oct_cv_val = mozziAnalogRead(IN1_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取
   // int toneFreq = (2270658 + Pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[oct_cv_val]))));
   switch (Wave) {
     default:
@@ -130,7 +130,7 @@ void updateControl() {
   if (param[7] < 1000) {  //如果release大于1000 则启用持续震荡模式
     envelope.setADLevels(255, 255);
     envelope.setTimes(param[6] >> 4, param[7] >> 4, param[7] >> 4, param[7] >> 4);
-    if (analogRead(3) > 800)
+    if (analogRead(IN2_PIN) > 800)
       envelope.noteOn();
     else
       envelope.noteOff();
@@ -146,7 +146,7 @@ int updateAudio() {
   switch (Wave) {
     default:
       return lpf.next((aSin.next() * Vol) >> 8);  // return an int signal centred around 0
-      // int oct_cv_val = mozziAnalogRead(IN2_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取 fm测试
+      // int oct_cv_val = mozziAnalogRead(IN1_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取 fm测试
       // return lpf.next(MonoOutput::fromNBit(16, (aSin.phMod(Q15n16(param[11] * oct_cv_val >> 8)) / 2 * Vol)));
     case 1:
       return lpf.next((aTra.next() * Vol) >> 8);
