@@ -45,9 +45,9 @@ void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int de
   返回经过控制逻辑处理后的下标
 */
 int getPostition(int position, int functionLength) {
-  // Serial.println(analogRead(KNOB));   //knob
-  // Serial.println(digitalRead(BTN1));  //btn1
-  // Serial.println(digitalRead(BTN2));  //btn2
+  Serial.println(mozziAnalogRead(KNOB));  //knob
+  Serial.println(digitalRead(BTN1));      //btn1
+  Serial.println(digitalRead(BTN2));      //btn2
 
   // Serial.println(btnHover);   //btn2
   // Serial.println(btnTime);    //btn2
@@ -84,15 +84,14 @@ int getPostition(int position, int functionLength) {
 int getParam(int old_param) {
   // Serial.print(knobEnable);   //btn2
   // Serial.println(old_param);  //btn2
-  // Serial.print("   analogRead(KNOB) ");  //btn2
-  // Serial.println(analogRead(KNOB));      //btn2
+
   //旋钮事件
-  int knob_dec = analogRead(KNOB) - old_param;  //检测旋钮进入原参数范围
+  int knob_dec = mozziAnalogRead(KNOB) - old_param;  //检测旋钮进入原参数范围
   if (-KNOB_CHANGE_RANGE < knob_dec && knob_dec < KNOB_CHANGE_RANGE) {
     knobEnable = 1;
   }
   if (knobEnable == 1) {  //进入范围后 则可以调节当前参数
-    old_param = analogRead(KNOB);
+    old_param = mozziAnalogRead(KNOB);
   }
   return old_param;
 }
