@@ -13,6 +13,16 @@ bool Led_7[7] = { 1, 1, 1, 1, 0, 0, 0 };     //coutourLine2.0 D2-D8引脚
 bool Led_8[7] = { 0, 0, 0, 0, 0, 0, 0 };     //coutourLine2.0 D2-D8引脚
 bool Led_9[7] = { 0, 0, 1, 0, 0, 0, 0 };     //coutourLine2.0 D2-D8引脚
 
+bool CLed1[7] = { 0, 1, 1, 1, 1, 1, 1 };  //coutourLine2.0 D2-D8引脚
+bool CLed2[7] = { 1, 0, 1, 1, 1, 1, 1 };  //coutourLine2.0 D2-D8引脚
+bool CLed3[7] = { 1, 1, 0, 1, 1, 1, 1 };  //coutourLine2.0 D2-D8引脚
+bool CLed4[7] = { 1, 1, 1, 0, 1, 1, 1 };  //coutourLine2.0 D2-D8引脚
+bool CLed5[7] = { 1, 1, 1, 1, 0, 1, 1 };  //coutourLine2.0 D2-D8引脚
+bool CLed6[7] = { 1, 1, 1, 1, 1, 0, 1 };  //coutourLine2.0 D2-D8引脚
+bool CLed7[7] = { 1, 1, 1, 1, 1, 1, 0 };  //coutourLine2.0 D2-D8引脚
+bool CLed8[7] = { 1, 1, 1, 1, 1, 1, 1 };  //coutourLine2.0 D2-D8引脚
+
+
 bool Led_A[7] = { 0, 0, 0, 1, 0, 0, 0 };  //coutourLine2.0 D2-D8引脚
 bool Led_B[7] = { 0, 0, 0, 0, 0, 1, 1 };  //coutourLine2.0 D2-D8引脚
 bool Led_C[7] = { 0, 1, 0, 0, 1, 1, 0 };  //coutourLine2.0 D2-D8引脚

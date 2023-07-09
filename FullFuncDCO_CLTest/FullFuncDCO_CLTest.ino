@@ -16,16 +16,15 @@
 #include <LowPassFilter.h>
 #include <ADSR.h>
 
-#define FUNCTION_LENGTH 10  //总菜单数
-#define CONTROL_RATE 128    //控制速率
-#define KNOB_PIN 0          //旋钮引脚
-#define BTN1_PIN 12         //按钮引脚
-#define BTN2_PIN 13         //按钮引脚
-#define OUTA_PIN 11         //OUTA引脚
-#define VOCT_PIN 0          //V OCT
-#define IN2_PIN 1           //IN1
-#define IN3_PIN 2           //IN2
-#define IN4_PIN 3           //IN3
+#define FUNCTION_LENGTH 8  //总菜单数
+#define CONTROL_RATE 128   //控制速率
+#define KNOB_PIN 0         //旋钮引脚
+#define BTN1_PIN 12        //按钮引脚
+#define BTN2_PIN 13        //按钮引脚
+#define OUTA_PIN 11        //OUTA引脚
+#define IN0_PIN 2          //V OCT
+#define IN1_PIN 3          //IN1
+#define IN2_PIN 5          //IN2
 
 Oscil<SIN256_NUM_CELLS, AUDIO_RATE> aSin(SIN256_DATA);
 Oscil<TRIANGLE_ANALOGUE512_NUM_CELLS, AUDIO_RATE> aTra(TRIANGLE_ANALOGUE512_DATA);
@@ -52,14 +51,10 @@ int param[FUNCTION_LENGTH] = {
   972,
   128,
   0,
-  1024,
-  // 0,  //FM
-  // 0,  //AM
+  1024
 };  // 给部分数组元素赋值
-// bool* ledGroup[FUNCTION_LENGTH] = { Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, };
-// bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_F, Led_R, Led_A, Led_D };
-bool* ledGroup[FUNCTION_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7, Led_8, Led_9, Led_0 };
-// bool* ledGroup[FUNCTION_LENGTH] = { Led_A, Led_B, Led_C, Led_D, Led_E, Led_F, Led_G, Led_H, Led_I, Led_J };
+
+bool* ledGroup[FUNCTION_LENGTH] = { CLed1, CLed2, CLed3, CLed4, CLed5, CLed6, CLed7, CLed8 };
 
 void setup() {
   Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -98,32 +93,32 @@ void updateControl() {
   lpf.setResonance(Reso);
 
   // 设置频率
-  // int oct_cv_val = mozziAnalogRead(IN2_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取
-  // int toneFreq = (2270658 + Pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[oct_cv_val]))));
+  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[analogRead(IN0_PIN) * 2]))));  // V/oct apply
+
   switch (Wave) {
     default:
-      aSin.setFreq(Pitch);  //设置频率  // aSin.setFreq(analogRead(0));
+      aSin.setFreq(toneFreq);  //设置频率  // aSin.setFreq(analogRead(0));
       break;
     case 1:
-      aTra.setFreq(Pitch);  //设置频率  // aSin.setFreq(analogRead(0));
+      aTra.setFreq(toneFreq);  //设置频率  // aSin.setFreq(analogRead(0));
       break;
     case 2:
-      aSqu.setFreq(Pitch);
+      aSqu.setFreq(toneFreq);
       break;
     case 3:
-      aSaw.setFreq(Pitch);
+      aSaw.setFreq(toneFreq);
       break;
     case 4:
-      aPha.setFreq(Pitch);
+      aPha.setFreq(toneFreq);
       break;
     case 5:
-      aHSin.setFreq(Pitch);
+      aHSin.setFreq(toneFreq);
       break;
     case 6:
-      aCheb.setFreq(Pitch);
+      aCheb.setFreq(toneFreq);
       break;
     case 7:
-      aNos.setFreq(Pitch);
+      aNos.setFreq(toneFreq);
       break;
   }
   //设置包络
