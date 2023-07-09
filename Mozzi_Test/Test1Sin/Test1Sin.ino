@@ -11,7 +11,7 @@ float depth = 0.25;
 byte volume = 88;  //音量范围 0-255
 
 void setup() {
-  Serial.begin(9600);  // for Teensy 3.1, beware printout can cause glitches
+  Serial.begin(115200);  // for Teensy 3.1, beware printout can cause glitches
   kVib.setFreq(6.5f);
   startMozzi(CONTROL_RATE);
 }

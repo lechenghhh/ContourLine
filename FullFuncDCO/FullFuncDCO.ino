@@ -100,30 +100,32 @@ void updateControl() {
   // 设置频率
   // int oct_cv_val = mozziAnalogRead(IN1_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取
   // int toneFreq = (2270658 + Pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[oct_cv_val]))));
+  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[analogRead(IN0_PIN)]))));  // V/oct apply
+
   switch (Wave) {
     default:
-      aSin.setFreq(Pitch);  //设置频率  // aSin.setFreq(analogRead(0));
+      aSin.setFreq(toneFreq);  //设置频率  // aSin.setFreq(analogRead(0));
       break;
     case 1:
-      aTra.setFreq(Pitch);  //设置频率  // aSin.setFreq(analogRead(0));
+      aTra.setFreq(toneFreq);  //设置频率  // aSin.setFreq(analogRead(0));
       break;
     case 2:
-      aSqu.setFreq(Pitch);
+      aSqu.setFreq(toneFreq);
       break;
     case 3:
-      aSaw.setFreq(Pitch);
+      aSaw.setFreq(toneFreq);
       break;
     case 4:
-      aPha.setFreq(Pitch);
+      aPha.setFreq(toneFreq);
       break;
     case 5:
-      aHSin.setFreq(Pitch);
+      aHSin.setFreq(toneFreq);
       break;
     case 6:
-      aCheb.setFreq(Pitch);
+      aCheb.setFreq(toneFreq);
       break;
     case 7:
-      aNos.setFreq(Pitch);
+      aNos.setFreq(toneFreq);
       break;
   }
   //设置包络
