@@ -47,22 +47,17 @@ void updateControl() {
     digitalWrite(i, HIGH);
   digitalWrite(POSITION + 5, LOW);
 
-  Serial.print("func");        //func param
+  Serial.print("func");             //func param
   Serial.println(POSITION);         //func param
   Serial.println(param[POSITION]);  //func param
   Serial.println(" ");
 
-  // voct = mozziAnalogRead(7);
+  //VOCT A7  CV-Freq A4  CV-LV A5
   voct = mozziAnalogRead(2);
-  knob_freq = param[0];  //mozziAnalogRead(0)
-  setFreqs((2270658 + knob_freq * 5000) * pow(2, (pgm_read_float(&(voctpow[voct])))));
-}
-
-//VOCT A7  CV-Freq A4  CV-LV A5
-void setFreqs(Q16n16 freq) {
-  carrier_freq = freq;                                                         // V/oct apply
-  mod_freq = ((carrier_freq >> 8) * (param[1] / 2 + mozziAnalogRead(3) / 2));  //mozziAnalogRead(1)
-  deviation = ((mod_freq >> 16) * (1 + param[2] + mozziAnalogRead(5)));        // (Q16n16>>16)   Q8n8 = Q24n8, beware of overflow  //mozziAnalogRead(3)
+  knob_freq = param[0];
+  carrier_freq = (2270658 + knob_freq * 5000) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
+  mod_freq = ((carrier_freq >> 8) * (param[1] / 2 + mozziAnalogRead(3) / 2));                //mozziAnalogRead(1)
+  deviation = ((mod_freq >> 16) * (1 + param[2] + mozziAnalogRead(5)));                      //(Q16n16>>16)Q8n8 = Q24n8,beware of overflow
   aCarrier.setFreq_Q16n16(carrier_freq);
   aModulator.setFreq_Q16n16(mod_freq);
 }
