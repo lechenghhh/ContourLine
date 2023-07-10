@@ -47,8 +47,8 @@ void updateControl() {
     digitalWrite(i, HIGH);
   digitalWrite(POSITION + 5, LOW);
 
-  Serial.print("func");             //func param
-  Serial.println(POSITION);         //func param
+  Serial.print(POSITION);           //func param
+  Serial.println("func");           //func param
   Serial.println(param[POSITION]);  //func param
   Serial.println(" ");
 

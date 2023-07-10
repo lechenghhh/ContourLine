@@ -61,7 +61,7 @@ int getPostition(int position, int functionLength) {
   //抬起事件
   if (digitalRead(BTN1) == DEF_LV && btnHover == 1) {
     //长按按钮事件
-    if (btnTime > 50) {
+    if (btnTime > 100) {
       position = 0;
       Serial.println("btn long");  //knob
     }
