@@ -11,8 +11,10 @@ int KNOB_CHANGE_RANGE;
 int DEF_LV;
 // int position = 0;  //modual ctrl position 当前菜单的位置
 
-int btnHover = 0;    //按下事件判断
-int btnTime = 0;     //长按事件判断
+int btnHover1 = 0;   //按下事件判断
+int btnTime1 = 0;    //长按事件判断
+int btnHover2 = 0;   //按下事件判断
+int btnTime2 = 0;    //长按事件判断
 int knobEnable = 0;  //旋钮事件允许
 
 /*
@@ -49,19 +51,22 @@ int getPostition(int position, int functionLength) {
   // Serial.println(digitalRead(BTN1));  //btn1
   // Serial.println(digitalRead(BTN2));  //btn2
 
-  // Serial.println(btnHover);   //btn2
-  // Serial.println(btnTime);    //btn2
+  // Serial.println(btnHover1);   //btn2
+  // Serial.println(btnTime1);    //btn2
 
 
   //按下事件
   if (digitalRead(BTN1) != DEF_LV) {
-    btnHover = 1;
-    btnTime++;
+    btnHover1 = 1;
+    btnTime1++;
+  } else if (digitalRead(BTN2) != DEF_LV) {
+    btnHover2 = 1;
+    btnTime2++;
   }
   //抬起事件
-  if (digitalRead(BTN1) == DEF_LV && btnHover == 1) {
+  if (digitalRead(BTN1) == DEF_LV && btnHover1 == 1) {
     //长按按钮事件
-    if (btnTime > 50) {
+    if (btnTime1 > 50) {
       position = 0;
       Serial.println("btn long");  //knob
     }
@@ -73,8 +78,26 @@ int getPostition(int position, int functionLength) {
       position++;
       Serial.println("btn short");  //knob
     }
-    btnHover = 0;
-    btnTime = 0;
+    btnHover1 = 0;
+    btnTime1 = 0;
+    knobEnable = 0;
+    Serial.println(knobEnable);  //btn2
+  } else if (digitalRead(BTN2) == DEF_LV && btnHover2 == 1) {
+    //长按按钮事件
+    if (btnTime2 > 50) {
+      position = 0;
+      Serial.println("btn long 2");  //knob
+    }
+    //短按按钮事件
+    else {
+      if (position <= 0) {
+        position = functionLength;
+      }
+      position--;
+      Serial.println("btn short 2");  //knob
+    }
+    btnHover2 = 0;
+    btnTime2 = 0;
     knobEnable = 0;
     Serial.println(knobEnable);  //btn2
   }

@@ -40,22 +40,11 @@ ADSR<AUDIO_RATE, AUDIO_RATE> envelope;
 
 int POSITION = 0;  //菜单下标
 String function[FUNCTION_LENGTH] = {
-  "Wave", "Shape", "Pitch", "Vol", "Cutof", "Reso.", "Attk.", "Decay",
+  "Wave", "Shape", "Pitch", "Vol", "Cutof", "ResQ", "Attk", "Rele",
   // "FMAmt", "AM"
   // "L1F", "L1A",
 };
-int param[FUNCTION_LENGTH] = {
-  0,
-  3,
-  440,
-  512,
-  972,
-  128,
-  0,
-  1024,
-  // 0,  //FM
-  // 0,  //AM
-};  // 给部分数组元素赋值
+int param[FUNCTION_LENGTH] = { 0, 3, 440, 512, 972, 128, 0, 1024 };  // 给部分数组元素赋值
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, };
 bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_F, Led_Q, Led_A, Led_R };
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7, Led_8, Led_9, Led_0 };
@@ -82,7 +71,7 @@ void updateControl() {
   param[POSITION] = getParam(param[POSITION]);         //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                      //display  //用以展示控制
 
-  Serial.print(function[POSITION] + param[POSITION]);  //func param
+  Serial.print(POSITION + function[POSITION] + param[POSITION]);  //func param
   // for (int ii = 0; ii < 10; ii++) Serial.print("-" + function[ii] + param[ii] + " ");  //func param list
   Serial.println("                  ");
 
