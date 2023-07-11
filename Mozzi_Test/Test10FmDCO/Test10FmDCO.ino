@@ -45,7 +45,7 @@ void updateControl() {
   // displayLED(ledGroup[POSITION]);                      //display  //用以展示控制
   for (int i = 2; i < 9; i++)
     digitalWrite(i, HIGH);
-  digitalWrite(POSITION + 5, LOW);
+  digitalWrite(POSITION + 2, LOW);
 
   Serial.print(POSITION);           //func param
   Serial.println("func");           //func param
