@@ -38,8 +38,8 @@ WaveShaper<int> aCompress(WAVESHAPE_COMPRESS_512_TO_488_DATA);  // to compress i
 Q24n8 carrier_freq;  // unsigned long with 24 integer bits and 8 fractional bits
 
 // smooth transitions between notes
-Smooth<unsigned int> kSmoothFreq(0.85f);
-int target_freq, smoothed_freq;
+// Smooth<unsigned int> kSmoothFreq(0.85f);
+// int target_freq, smoothed_freq;
 
 int POSITION = 0;
 String function[6] = { "Wave", "Pitch", "M1F", "M1Lv", "M2F", "M2Lv" };
@@ -73,9 +73,9 @@ void updateControl() {
   digitalWrite(POSITION + 2, LOW);
 
   Serial.print(POSITION);           //func param
-  Serial.println("func");           //func param
+  Serial.println(F("func"));        //func param
   Serial.println(param[POSITION]);  //func param
-  Serial.println(" ");
+  Serial.println(F(" "));
 
   float M1F = param[2] / 100;
   float M2F = param[4] / 100;
@@ -84,7 +84,7 @@ void updateControl() {
   aLfo1.setFreq(M1F);  // aLfo1.setFreq(2.f)// use a float for low frequencies, in setup it doesn't need to be fast
   aLfo2.setFreq(M2F);  // aLfo2.setFreq(.4f);
 
-  smoothed_freq = kSmoothFreq.next(param[1] /*target_freq*/ * 4);  //暂时放大target_freq以在低值时获得更好的int平滑 temporarily scale up target_freq to get better int smoothing at low values
+  // smoothed_freq = kSmoothFreq.next(param[1] /*target_freq*/ * 4);  //暂时放大target_freq以在低值时获得更好的int平滑 temporarily scale up target_freq to get better int smoothing at low values
   int voct = mozziAnalogRead(2);
   // Pitch = (2270658 + param[1] * 5000) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
   Pitch = param[1];
