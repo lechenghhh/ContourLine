@@ -32,8 +32,8 @@ void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int de
     // pinMode(BTN2, INPUT_PULLUP);//D13引脚会因为无法上拉电阻而导致无法默认高电平 因此手动设置
     if (BTN1 == 13) digitalWrite(BTN1, HIGH);
     else pinMode(BTN1, INPUT_PULLUP);
-    if (BTN2 == 13) digitalWrite(BTN2, HIGH);
-    else pinMode(BTN2, INPUT_PULLUP);
+    if (BTN2 == 13) digitalWrite(BTN2,LOW);//CLTest飞线定制版
+    // else pinMode(BTN2, INPUT);
   } else {
     pinMode(BTN1, INPUT);
     pinMode(BTN2, INPUT);
@@ -45,9 +45,9 @@ void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int de
   返回经过控制逻辑处理后的下标
 */
 int getPostition(int position, int functionLength) {
-  Serial.println(mozziAnalogRead(KNOB));  //knob
-  Serial.println(digitalRead(BTN1));      //btn1
-  Serial.println(digitalRead(BTN2));      //btn2
+  // Serial.println(mozziAnalogRead(KNOB));   //knob
+  // Serial.println(digitalRead(BTN1));  //btn1
+  // Serial.println(digitalRead(BTN2));  //btn2
 
   // Serial.println(btnHover);   //btn2
   // Serial.println(btnTime);    //btn2
@@ -61,7 +61,7 @@ int getPostition(int position, int functionLength) {
   //抬起事件
   if (digitalRead(BTN1) == DEF_LV && btnHover == 1) {
     //长按按钮事件
-    if (btnTime > 100) {
+    if (btnTime > 50) {
       position = 0;
       Serial.println("btn long");  //knob
     }
@@ -84,7 +84,8 @@ int getPostition(int position, int functionLength) {
 int getParam(int old_param) {
   // Serial.print(knobEnable);   //btn2
   // Serial.println(old_param);  //btn2
-
+  // Serial.print("   mozziAnalogRead(KNOB) ");  //btn2
+  // Serial.println(mozziAnalogRead(KNOB));      //btn2
   //旋钮事件
   int knob_dec = mozziAnalogRead(KNOB) - old_param;  //检测旋钮进入原参数范围
   if (-KNOB_CHANGE_RANGE < knob_dec && knob_dec < KNOB_CHANGE_RANGE) {
