@@ -91,9 +91,9 @@ void updateControl() {
   //设置滤波器
   lpf.setCutoffFreq(Cutof);
   lpf.setResonance(Reso);
-
+  int voct = analogRead(IN0_PIN) * 1.85;
   // 设置频率
-  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[analogRead(IN0_PIN) * 1.85]))));  // V/oct apply
+  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
 
   switch (Wave) {
     default:
