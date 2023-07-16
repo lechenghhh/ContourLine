@@ -53,7 +53,7 @@ void updateControl() {
   Serial.println(" ");
 
   //VOCT A7  CV-Freq A4  CV-LV A5
-  voct = mozziAnalogRead(2);
+  voct = mozziAnalogRead(2) * 1.85;//由于cltest的voct接口阻抗问题 这里需要乘以一个系数 调谐才比较准确
   knob_freq = param[0];
   carrier_freq = (2270658 + knob_freq * 5000) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
   mod_freq = ((carrier_freq >> 8) * (param[1] / 2 + mozziAnalogRead(3) / 2));                //mozziAnalogRead(1)
