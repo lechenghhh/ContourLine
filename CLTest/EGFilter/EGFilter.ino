@@ -89,7 +89,8 @@ void updateControl() {
   // lpf.setResonance(Reso);
 
   // 设置频率
-  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(IN0_PIN) * 2]))));  // V/oct apply
+  int voct = mozziAnalogRead(IN0_PIN) * 1.85;
+  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
 
   switch (Wave) {
     default:
