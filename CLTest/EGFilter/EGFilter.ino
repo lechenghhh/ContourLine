@@ -121,7 +121,7 @@ void updateControl() {
     envelope.setADLevels(255, 255);
     envelope.setTimes(param[6] >> 4, param[7] >> 4, param[7] >> 4, param[7] >> 4);
     // if (mozziAnalogRead(IN1_PIN) > 800) //gate in
-    if (digitalRead(13) == 1)  //btn Test cltest飞线定制版
+    if (digitalRead(13) == 1||analogRead(3)>800)  //btn Test cltest飞线定制版
       envelope.noteOn();
     else
       envelope.noteOff();
