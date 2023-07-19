@@ -9,6 +9,8 @@
 
 ## Image
 ![image](contourline1.0.jpg)
+![image](https://github.com/lechenghhh/ContourLine/blob/master/contourline1.0.jpg)
+
 
 ## HardWare Version
 ### 0.6
