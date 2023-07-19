@@ -41,7 +41,7 @@ void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int de
     pinMode(BTN2, INPUT);
   }
 }
-
+int swLFO = 1;
 /*
   传入菜单下标
   返回经过控制逻辑处理后的下标
@@ -72,9 +72,12 @@ int getPostition(int position, int functionLength) {
     }
     //短按按钮事件
     else {
-      if (functionLength - 1 <= position) {
+      if (functionLength / 2 <= position) {
         position = -1;
       }
+      if (swLFO == 2) position = -1;
+
+      swLFO = 1;
       position++;
       Serial.println("btn short");  //knob
     }
@@ -91,9 +94,11 @@ int getPostition(int position, int functionLength) {
     //短按按钮事件
     else {
       if (position <= 0) {
-        position = functionLength;
+        position = functionLength / 2;
       }
-      position--;
+      if (swLFO == 1) position = 4;
+      swLFO = 2;
+      position++;
       Serial.println("btn short 2");  //knob
     }
     btnHover2 = 0;
