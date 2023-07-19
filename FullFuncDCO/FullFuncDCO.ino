@@ -61,7 +61,7 @@ int Wave = 0;
 int Pitch = 0;
 int Vol = 0;
 int Cutof = 0;
-int Reso = 0;
+int ResQ = 0;
 
 int FM = 0;
 int AM = 0;
@@ -80,11 +80,11 @@ void updateControl() {
   Pitch = param[2] + 20;  //频率调整 20hz-2048hz
   Vol = param[3] >> 3;    //0-256
   Cutof = param[4] >> 2;
-  Reso = param[5] >> 2;
+  ResQ = param[5] >> 2;
 
   //设置滤波器
   lpf.setCutoffFreq(Cutof);
-  lpf.setResonance(Reso);
+  lpf.setResonance(ResQ);
 
   // 设置频率
   // int oct_cv_val = mozziAnalogRead(IN1_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取
