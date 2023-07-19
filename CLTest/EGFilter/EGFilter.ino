@@ -121,7 +121,7 @@ void updateControl() {
     envelope.setADLevels(255, 255);
     envelope.setTimes(param[6] >> 4, param[7] >> 4, param[7] >> 4, param[7] >> 4);
     // if (mozziAnalogRead(IN1_PIN) > 800) //gate in
-    if (digitalRead(13) == 1||analogRead(3)>800)  //btn Test cltest飞线定制版
+    if (digitalRead(13) == 1 || analogRead(3) > 800)  //btn Test cltest黑色 飞线定制版
       envelope.noteOn();
     else
       envelope.noteOff();
@@ -136,7 +136,7 @@ void updateControl() {
 int updateAudio() {
   // Q15n16 vibrato = (Q15n16)L1A * lfo.next();
   //设置滤波器
-  lpf.setCutoffFreq(Cutof + F_E_A  + (128 + aLfo.next()) * C_M_A);
+  lpf.setCutoffFreq(Cutof + F_E_A + (128 + aLfo.next()) * C_M_A);
   lpf.setResonance(Reso);
   switch (Wave) {
     default:
