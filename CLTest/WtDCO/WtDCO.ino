@@ -56,6 +56,7 @@ void setup() {
 }
 
 int M1Lv = 0, M2Lv = 0, Pitch = 440;
+int mozA3 = 0;
 void updateControl() {
   POSITION = getPostition(POSITION, 6);         //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);  //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
@@ -88,6 +89,7 @@ void updateControl() {
   aSaw.setFreq(Pitch);     // 平滑后再缩小then scale it back down after it's smoothed
   aCospha.setFreq(Pitch);  // 平滑后再缩小then scale it back down after it's smoothed
   aUPha.setFreq(Pitch);    // 平滑后再缩小then scale it back down after it's smoothed
+  mozA3 = mozziAnalogRead(3);
 }
 
 int updateAudio() {
@@ -110,9 +112,9 @@ int updateAudio() {
   // 将信号偏移128以适应波形表查找的0-255范围 offset the signals by 128 to fit in the 0-255 range for the waveshaping table lookups
   // byte asig1 = (byte)128 + ((asig0 * ((byte)128 + (aLfo1.next() * M1Lv >> 10))) >> 6);  //lfo1
   // byte asig2 = (byte)128 + ((asig0 * ((byte)128 + (aLfo2.next() * M2Lv >> 10))) >> 6);  //lfo2
-  byte asig1 = (byte)128 + ((asig0 * ((byte)128 + ((mozziAnalogRead(3) >> 2) * M1Lv >> 10))) >> 6);  //lecheng: 这里进行调制 mozziAnalogRead()
+  byte asig1 = (byte)128 + ((asig0 * ((byte)128 + ((mozA3 >> 2) * M1Lv >> 10))) >> 6);  //lecheng: 这里进行调制 mozziAnalogRead()
   // byte asig2 = (byte)128 + ((asig0 * ((byte)128 + ((mozziAnalogRead(5) >> 2) * M2Lv >> 10))) >> 6);  //lecheng: 这里进行调制 mozziAnalogRead()
-  byte asig2 = (byte)128 + ((asig0 * ((byte)128 + (1* M2Lv >> 10))) >> 6);  //lecheng: 这里进行调制 mozziAnalogRead()
+  byte asig2 = (byte)128 + ((asig0 * ((byte)128 + (1 * M2Lv >> 10))) >> 6);  //lecheng: 这里进行调制 mozziAnalogRead()
   // 得到波形信号 get the waveshaped signals
   char awaveshaped1 = aCheby3rd.next(asig1);
   char awaveshaped2 = aCheby6th.next(asig2);
