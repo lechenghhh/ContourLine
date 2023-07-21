@@ -42,7 +42,7 @@ ADSR<AUDIO_RATE, AUDIO_RATE> envelope;
 
 int POSITION = 0;  //菜单下标
 String function[FUNCTION_LENGTH] = { "Wave", "F_Env", "Pitch", "Vol", "FFreq", "FltQ.", "Attk.", "Decay", "C_M_F", "C_M_A" };
-int param[FUNCTION_LENGTH] = { 0, 512, 440, 512, 972, 128, 0, 500, 0, 0 };  // 给部分数组元素赋值
+int param[FUNCTION_LENGTH] = { 0, 512, 440, 512, 972, 128, 0, 1001, 0, 0 };  // 给部分数组元素赋值
 
 bool* ledGroup[FUNCTION_LENGTH] = { CLed1, CLed2, CLed3, CLed4, CLed5, CLed6, CLed7, CLed8, CLed7, CLed8 };
 
@@ -121,7 +121,7 @@ void updateControl() {
     envelope.setADLevels(255, 255);
     envelope.setTimes(param[6] >> 4, param[7] >> 4, param[7] >> 4, param[7] >> 4);
     // if (mozziAnalogRead(IN1_PIN) > 800) //gate in
-    if (digitalRead(13) == 1 || analogRead(3) > 800)  //btn Test cltest黑色 飞线定制版
+    if (digitalRead(13) == 1 || mozziAnalogRead(3) > 800)  //btn Test cltest黑色 飞线定制版
       envelope.noteOn();
     else
       envelope.noteOff();
