@@ -44,7 +44,7 @@ String function[FUNCTION_LENGTH] = {
   // "FMAmt", "AM"
   // "L1F", "L1A",
 };
-int param[FUNCTION_LENGTH] = { 0, 3, 440, 512, 972, 128, 0, 1024 };  // 给部分数组元素赋值
+int param[FUNCTION_LENGTH] = { 0, 3, 440, 1024, 972, 128, 0, 1024 };  // 给部分数组元素赋值
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, };
 bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_F, Led_Q, Led_A, Led_R };
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7, Led_8, Led_9, Led_0 };

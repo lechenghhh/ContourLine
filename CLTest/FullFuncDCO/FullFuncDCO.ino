@@ -47,7 +47,7 @@ int param[FUNCTION_LENGTH] = {
   0,
   3,
   440,
-  512,
+  1024,
   972,
   128,
   0,
