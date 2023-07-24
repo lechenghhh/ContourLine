@@ -4,9 +4,9 @@
 ### Dco (FM/WaveTable/Noise/Poly/Chord...)
 ### Quantizer
 ### Sequencer
-### ADSR
-### LFO
-
+### ADSR x2
+### LFO x2
+### other?
 ## Image
 ![image](contourline1.0.jpg)
 ![image](https://github.com/lechenghhh/ContourLine/blob/master/contourline1.0.jpg)
