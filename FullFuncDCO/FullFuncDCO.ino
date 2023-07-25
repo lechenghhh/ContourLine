@@ -13,19 +13,20 @@
 #include <tables/halfsin256_uint8.h>
 #include <tables/waveshape_chebyshev_4th_256_int8.h>
 #include <tables/whitenoise8192_int8.h>
+#include <tables/cos256_int8.h>  // table for Oscils to play
 #include <LowPassFilter.h>
 #include <ADSR.h>
 
-#define FUNCTION_LENGTH 8  //总菜单数
-#define CONTROL_RATE 128   //控制速率
-#define KNOB_PIN 4         //旋钮引脚
-#define BTN1_PIN 12        //按钮引脚
-#define BTN2_PIN 13        //按钮引脚
-#define OUTA_PIN 11        //OUTA引脚
-#define IN0_PIN 0          //IV OCT
-#define IN1_PIN 1          //FM
-#define IN2_PIN 2          //Gate
-#define IN3_PIN 3          //Mod
+#define FUNCTION_LENGTH 10  //总菜单数
+#define CONTROL_RATE 128    //控制速率
+#define KNOB_PIN 4          //旋钮引脚
+#define BTN1_PIN 12         //按钮引脚
+#define BTN2_PIN 13         //按钮引脚
+#define OUTA_PIN 11         //OUTA引脚
+#define IN0_PIN 0           //IV OCT
+#define IN1_PIN 1           //FM
+#define IN2_PIN 2           //Gate
+#define IN3_PIN 3           //Mod
 
 Oscil<SIN256_NUM_CELLS, AUDIO_RATE> aSin(SIN256_DATA);
 Oscil<TRIANGLE_ANALOGUE512_NUM_CELLS, AUDIO_RATE> aTra(TRIANGLE_ANALOGUE512_DATA);
@@ -35,20 +36,18 @@ Oscil<PHASOR256_NUM_CELLS, AUDIO_RATE> aPha(PHASOR256_DATA);
 Oscil<HALFSIN256_NUM_CELLS, AUDIO_RATE> aHSin(HALFSIN256_DATA);
 Oscil<CHEBYSHEV_4TH_256_NUM_CELLS, AUDIO_RATE> aCheb(CHEBYSHEV_4TH_256_DATA);
 Oscil<WHITENOISE8192_NUM_CELLS, AUDIO_RATE> aNos(WHITENOISE8192_DATA);
+
+Oscil<COS256_NUM_CELLS, AUDIO_RATE> aCarrier(COS256_DATA);
+Oscil<COS256_NUM_CELLS, AUDIO_RATE> aModulator(COS256_DATA);
+
 LowPassFilter lpf;
 ADSR<AUDIO_RATE, AUDIO_RATE> envelope;
 
 int POSITION = 0;  //菜单下标
-String function[FUNCTION_LENGTH] = {
-  "Wave", "Shape", "Pitch", "Vol", "Cutof", "ResQ", "Attk", "Rele",
-  // "FMAmt", "AM"
-  // "L1F", "L1A",
-};
-int param[FUNCTION_LENGTH] = { 0, 3, 440, 1024, 972, 128, 0, 1024 };  // 给部分数组元素赋值
+String function[FUNCTION_LENGTH] = { "Wave", "Shape", "Pitch", "Vol", "Cutof", "ResQ", "Attk", "Rele", "FM", "FMA" };
+int param[FUNCTION_LENGTH] = { 0, 3, 440, 1024, 972, 128, 0, 1024, 0, 0 };  // 给部分数组元素赋值
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, };
 bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_F, Led_Q, Led_A, Led_R };
-// bool* ledGroup[FUNCTION_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7, Led_8, Led_9, Led_0 };
-// bool* ledGroup[FUNCTION_LENGTH] = { Led_A, Led_B, Led_C, Led_D, Led_E, Led_F, Led_G, Led_H, Led_I, Led_J };
 
 void setup() {
   Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -64,7 +63,7 @@ int Cutof = 0;
 int ResQ = 0;
 
 int FM = 0;
-int AM = 0;
+int FMA = 0;
 void updateControl() {
 
   POSITION = getPostition(POSITION, FUNCTION_LENGTH);  //获取菜单下标
@@ -90,7 +89,10 @@ void updateControl() {
   // int oct_cv_val = mozziAnalogRead(IN1_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取
   // int toneFreq = (2270658 + Pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[oct_cv_val]))));
   int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[analogRead(IN0_PIN)]))));  // V/oct apply
-
+  FM = ((toneFreq >> 8) * (param[9] / 2 + analogRead(IN1_PIN) / 2));                 //mozziAnalogRead(1)
+  FMA = ((FM >> 16) * (1 + param[8] + analogRead(IN3_PIN)));
+  aCarrier.setFreq_Q16n16(toneFreq);
+  aModulator.setFreq_Q16n16(FM);
   switch (Wave) {
     default:
       aSin.setFreq(toneFreq);  //设置频率  // aSin.setFreq(analogRead(0));
@@ -133,27 +135,39 @@ void updateControl() {
 }
 
 int updateAudio() {
-  // Q15n16 vibrato = (Q15n16)L1A * lfo.next();
+  char asig = 0;
+  int tmpVol = Vol >> 8;
   switch (Wave) {
     default:
-      return lpf.next((aSin.next() * Vol) >> 8);  // return an int signal centred around 0
+      asig = aSin.next();
+      break;
       // int oct_cv_val = mozziAnalogRead(IN1_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取 fm测试
       // return lpf.next(MonoOutput::fromNBit(16, (aSin.phMod(Q15n16(param[11] * oct_cv_val >> 8)) / 2 * Vol)));
     case 1:
-      return lpf.next((aTra.next() * Vol) >> 8);
+      asig = aTra.next();
+      break;
     case 2:
-      return lpf.next((aSqu.next() * Vol) >> 8);
+      asig = aSqu.next();
+      break;
     case 3:
-      return lpf.next((aSaw.next() * Vol) >> 8);
+      asig = aSaw.next();
+      break;
     case 4:
-      return lpf.next((aPha.next() * Vol) >> 8);
+      asig = aPha.next();
+      break;
     case 5:
-      return lpf.next((aHSin.next() * Vol) >> 8);
+      asig = aHSin.next();
+      break;
     case 6:
-      return lpf.next((aCheb.next() * Vol) >> 8);
+      asig = aCheb.next();
+      break;
     case 7:
-      return lpf.next((aNos.next() * Vol) >> 8);
+      asig = aNos.next();
+      break;
   }
+  // int tmpMod = FMA * aModulator.next() >> 8;
+  // return aCarrier.phMod(tmpMod);
+  return lpf.next(asig * tmpVol);
 }
 
 void loop() {   //这里实时音频处理 尽量不要额外的事情
