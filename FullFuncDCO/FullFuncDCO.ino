@@ -1,9 +1,9 @@
+#include <MozziGuts.h>
 //主程序 逻辑
 #include "Module_LEDDisplay.h"  //自定义库封装led 控制 常量
 #include "Module_Ctrl.h"
 #include "Module_Const.h"
 
-#include <MozziGuts.h>
 #include <Oscil.h>               // oscillator template
 #include <tables/sin256_int8.h>  // sine table for oscillator
 #include <tables/triangle_analogue512_int8.h>
@@ -47,7 +47,7 @@ int POSITION = 0;  //菜单下标
 String function[FUNCTION_LENGTH] = { "Wave", "Shape", "Pitch", "Vol", "Cutof", "ResQ", "Attk", "Rele", "FM", "FMA" };
 int param[FUNCTION_LENGTH] = { 0, 3, 440, 1024, 972, 128, 0, 1024, 0, 0 };  // 给部分数组元素赋值
 // bool* ledGroup[FUNCTION_LENGTH] = { Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, Led_NULL, };
-bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_F, Led_Q, Led_A, Led_R };
+bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_C, Led_Q, Led_A, Led_R, Led_F, Led_M };
 
 void setup() {
   Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -86,16 +86,20 @@ void updateControl() {
   lpf.setResonance(ResQ);
 
   // 设置频率
-  // int oct_cv_val = mozziAnalogRead(IN1_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取
-  // int toneFreq = (2270658 + Pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[oct_cv_val]))));
-  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[analogRead(IN0_PIN)]))));  // V/oct apply
-  FM = ((toneFreq >> 8) * (param[9] / 2 + analogRead(IN1_PIN) / 2));                 //mozziAnalogRead(1)
-  FMA = ((FM >> 16) * (1 + param[8] + analogRead(IN3_PIN)));
-  aCarrier.setFreq_Q16n16(toneFreq);
-  aModulator.setFreq_Q16n16(FM);
+  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(IN0_PIN)]))));  // V/oct no fm
+
+  // FM MOD
+  // int toneFreq2 = (2270658 + Pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[analogRead(IN0_PIN)]))));  // V/oct fm
+  FM = (toneFreq * ((param[8] + mozziAnalogRead(IN1_PIN)) >> 6));  //mozziAnalogRead(1)
+  FMA = (FM * (param[9] + mozziAnalogRead(IN3_PIN)) >> 8);
+  Serial.print(FM);
+  Serial.print("-----");
+  Serial.println(FMA);
+  aModulator.setFreq(FM);
+
   switch (Wave) {
     default:
-      aSin.setFreq(toneFreq);  //设置频率  // aSin.setFreq(analogRead(0));
+      aSin.setFreq(toneFreq);  //设置频率
       break;
     case 1:
       aTra.setFreq(toneFreq);  //设置频率  // aSin.setFreq(analogRead(0));
@@ -123,7 +127,7 @@ void updateControl() {
   if (param[7] < 1000) {  //如果release大于1000 则启用持续震荡模式
     envelope.setADLevels(255, 255);
     envelope.setTimes(param[6] >> 4, param[7] >> 4, param[7] >> 4, param[7] >> 4);
-    if (analogRead(IN2_PIN) > 800)
+    if (mozziAnalogRead(IN2_PIN) > 800)
       envelope.noteOn();
     else
       envelope.noteOff();
@@ -136,38 +140,36 @@ void updateControl() {
 
 int updateAudio() {
   char asig = 0;
-  int tmpVol = Vol >> 8;
+  //fm运算
+  int tmpMod = FMA * aModulator.next();
   switch (Wave) {
     default:
-      asig = aSin.next();
+      // asig = aSin.next();
+      asig = aSin.phMod(tmpMod);
       break;
-      // int oct_cv_val = mozziAnalogRead(IN1_PIN);//这里用v/oct的输入值 用mozzi专用的引脚读取 fm测试
-      // return lpf.next(MonoOutput::fromNBit(16, (aSin.phMod(Q15n16(param[11] * oct_cv_val >> 8)) / 2 * Vol)));
     case 1:
-      asig = aTra.next();
+      asig = aTra.phMod(tmpMod);
       break;
     case 2:
-      asig = aSqu.next();
+      asig = aSqu.phMod(tmpMod);
       break;
     case 3:
-      asig = aSaw.next();
+      asig = aSaw.phMod(tmpMod);
       break;
     case 4:
-      asig = aPha.next();
+      asig = aPha.phMod(tmpMod);
       break;
     case 5:
-      asig = aHSin.next();
+      asig = aHSin.phMod(tmpMod);
       break;
     case 6:
-      asig = aCheb.next();
+      asig = aCheb.phMod(tmpMod);
       break;
     case 7:
-      asig = aNos.next();
+      asig = aNos.phMod(tmpMod);
       break;
   }
-  // int tmpMod = FMA * aModulator.next() >> 8;
-  // return aCarrier.phMod(tmpMod);
-  return lpf.next(asig * tmpVol);
+  return lpf.next((asig * Vol) >> 8);
 }
 
 void loop() {   //这里实时音频处理 尽量不要额外的事情

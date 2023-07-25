@@ -22,8 +22,8 @@ int voct = 500;
 int POSITION = 0;
 String function[3] = { "Carri", "ModFq", "ModLV" };
 int param[3] = { 1, 2, 3 };
-Q16n16 deviation;
-Q16n16 carrier_freq, mod_freq, knob_freq;
+Q16n16 FMA;
+Q16n16 toneFreq, FMod, pitch;
 
 void setup() {
   Serial.begin(115200);           //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -53,17 +53,21 @@ void updateControl() {
   Serial.println(" ");
 
   //VOCT A7  CV-Freq A4  CV-LV A5
-  voct = mozziAnalogRead(2) * 1.85;//由于cltest的voct接口阻抗问题 这里需要乘以一个系数 调谐才比较准确
-  knob_freq = param[0];
-  carrier_freq = (2270658 + knob_freq * 5000) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
-  mod_freq = ((carrier_freq >> 8) * (param[1] / 2 + mozziAnalogRead(3) / 2));                //mozziAnalogRead(1)
-  deviation = ((mod_freq >> 16) * (1 + param[2] + mozziAnalogRead(5)));                      //(Q16n16>>16)Q8n8 = Q24n8,beware of overflow
-  aCarrier.setFreq_Q16n16(carrier_freq);
-  aModulator.setFreq_Q16n16(mod_freq);
+  voct = mozziAnalogRead(2) * 1.85;  //由于cltest的voct接口阻抗问题 这里需要乘以一个系数 调谐才比较准确
+  pitch = param[0];
+  toneFreq = (2270658 + pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
+  FMod = ((toneFreq >> 8) * (param[1] / 2 + mozziAnalogRead(3) / 2));                //mozziAnalogRead(1)
+  FMA = ((FMod >> 16) * (1 + param[2] + mozziAnalogRead(5)));
+  aCarrier.setFreq_Q16n16(toneFreq);
+  aModulator.setFreq_Q16n16(FMod);
+
+  Serial.print(FMod);
+  Serial.print("--");
+  Serial.println(FMA);
 }
 
 AudioOutput_t updateAudio() {
-  Q15n16 modulation = deviation * aModulator.next() >> 8;
+  Q15n16 modulation = FMA * aModulator.next() >> 8;
   return MonoOutput::from8Bit(aCarrier.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
 }
 
