@@ -61,6 +61,8 @@ void updateControl() {
   aCarrier.setFreq_Q16n16(toneFreq);
   aModulator.setFreq_Q16n16(FMod);
 
+  Serial.print(toneFreq);
+  Serial.print("--");
   Serial.print(FMod);
   Serial.print("--");
   Serial.println(FMA);
