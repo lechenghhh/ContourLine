@@ -78,17 +78,23 @@ void updateControl() {
   ResQ = param[5] >> 2;
 
   // 获取频率
-  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(IN0_PIN)]))));  // V/oct no fm
+  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(IN0_PIN)]))));  // V/oct
 
-  // 设置调频
-  // int toneFreq2 = (2270658 + Pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[analogRead(IN0_PIN)]))));  // V/oct fm
+  // 设置调频算法
   // FM = (toneFreq * ((param[8] + mozziAnalogRead(IN1_PIN)) >> 6));  //test
+  //FM算法1
   FM = (int)toneFreq * (((float)map(param[8], 0, 1023, 0.5, 16) + (float)map(mozziAnalogRead(IN1_PIN), 0, 1023, 0.5, 16)));
   FMA = (FM * (param[9] + mozziAnalogRead(IN3_PIN)) >> 8);
-  Serial.print(FM);  //(0.5~16 + 0.5~16) x pitch
-  Serial.print("-----");
-  Serial.println(FMA);
+  //FM算法2
+  if (param[8] > 100) FM = (param[8] + mozziAnalogRead(IN1_PIN));  //引脚经常有杂波 需要考虑权重或者滤除
+  else FM = param[8];
+  if (param[9] > 100) FMA = (param[9] + mozziAnalogRead(IN3_PIN));
+  else FMA = param[9];
   aModulator.setFreq(FM);
+
+  Serial.print(FM);  //(0.5~16 + 0.5~16) x pitch
+  Serial.print("     ");
+  Serial.println(FMA);
 
   //设置频率
   switch (Wave) {
@@ -139,7 +145,7 @@ void updateControl() {
 
 int updateAudio() {
   char asig = 0;
-  //FM运算
+  // FM运算
   int tmpMod = FMA * aModulator.next();
   switch (Wave) {
     default:
