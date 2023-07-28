@@ -13,7 +13,6 @@
 #include <tables/halfsin256_uint8.h>
 #include <tables/waveshape_chebyshev_4th_256_int8.h>
 #include <tables/whitenoise8192_int8.h>
-#include <tables/cos256_int8.h>  // table for Oscils to play
 #include <LowPassFilter.h>
 #include <ADSR.h>
 
@@ -36,10 +35,7 @@ Oscil<PHASOR256_NUM_CELLS, AUDIO_RATE> aPha(PHASOR256_DATA);
 Oscil<HALFSIN256_NUM_CELLS, AUDIO_RATE> aHSin(HALFSIN256_DATA);
 Oscil<CHEBYSHEV_4TH_256_NUM_CELLS, AUDIO_RATE> aCheb(CHEBYSHEV_4TH_256_DATA);
 Oscil<WHITENOISE8192_NUM_CELLS, AUDIO_RATE> aNos(WHITENOISE8192_DATA);
-
-Oscil<COS256_NUM_CELLS, AUDIO_RATE> aCarrier(COS256_DATA);
-Oscil<COS256_NUM_CELLS, AUDIO_RATE> aModulator(COS256_DATA);
-
+Oscil<SIN256_NUM_CELLS, AUDIO_RATE> aModulator(SIN256_DATA);
 LowPassFilter lpf;
 ADSR<AUDIO_RATE, AUDIO_RATE> envelope;
 
@@ -52,7 +48,7 @@ bool* ledGroup[FUNCTION_LENGTH] = { Led_W, Led_S, Led_P, Led_V, Led_C, Led_Q, Le
 void setup() {
   Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
   initCtrl(KNOB_PIN, 50, BTN1_PIN, BTN2_PIN, HIGH);  //初始化控制参数
-  initLED(2, 3, 4, 5, 6, 7, 8);                      //初始化led引脚
+  initLED(2, 3, 4, 5, 6, 7, 8);                      //初始化Led引脚
   startMozzi(CONTROL_RATE);                          //启动mozzi库
 }
 
@@ -61,9 +57,9 @@ int Pitch = 0;
 int Vol = 0;
 int Cutof = 0;
 int ResQ = 0;
-
 int FM = 0;
 int FMA = 0;
+
 void updateControl() {
 
   POSITION = getPostition(POSITION, FUNCTION_LENGTH);  //获取菜单下标
@@ -81,28 +77,32 @@ void updateControl() {
   Cutof = param[4] >> 2;
   ResQ = param[5] >> 2;
 
-  //设置滤波器
-  lpf.setCutoffFreq(Cutof);
-  lpf.setResonance(ResQ);
+  // 获取频率
+  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(IN0_PIN)]))));  // V/oct
 
-  // 设置频率
-  int toneFreq = Pitch * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(IN0_PIN)]))));  // V/oct no fm
-
-  // FM MOD
-  // int toneFreq2 = (2270658 + Pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[analogRead(IN0_PIN)]))));  // V/oct fm
-  FM = (toneFreq * ((param[8] + mozziAnalogRead(IN1_PIN)) >> 6));  //mozziAnalogRead(1)
+  // 设置调频算法
+  // FM = (toneFreq * ((param[8] + mozziAnalogRead(IN1_PIN)) >> 6));  //test
+  //FM算法1
+  FM = (int)toneFreq * (((float)map(param[8], 0, 1023, 0.5, 16) + (float)map(mozziAnalogRead(IN1_PIN), 0, 1023, 0.5, 16)));
   FMA = (FM * (param[9] + mozziAnalogRead(IN3_PIN)) >> 8);
-  Serial.print(FM);
-  Serial.print("-----");
-  Serial.println(FMA);
+  //FM算法2
+  if (param[8] > 100) FM = (param[8] + mozziAnalogRead(IN1_PIN));  //引脚经常有杂波 需要考虑权重或者滤除
+  else FM = param[8];
+  if (param[9] > 100) FMA = (param[9] + mozziAnalogRead(IN3_PIN));
+  else FMA = param[9];
   aModulator.setFreq(FM);
 
+  Serial.print(FM);  //(0.5~16 + 0.5~16) x pitch
+  Serial.print("     ");
+  Serial.println(FMA);
+
+  //设置频率
   switch (Wave) {
     default:
-      aSin.setFreq(toneFreq);  //设置频率
+      aSin.setFreq(toneFreq);
       break;
     case 1:
-      aTra.setFreq(toneFreq);  //设置频率  // aSin.setFreq(analogRead(0));
+      aTra.setFreq(toneFreq);
       break;
     case 2:
       aSqu.setFreq(toneFreq);
@@ -123,6 +123,11 @@ void updateControl() {
       aNos.setFreq(toneFreq);
       break;
   }
+
+  // 设置滤波器
+  lpf.setCutoffFreq(Cutof);
+  lpf.setResonance(ResQ);
+
   //设置包络
   if (param[7] < 1000) {  //如果release大于1000 则启用持续震荡模式
     envelope.setADLevels(255, 255);
@@ -140,12 +145,11 @@ void updateControl() {
 
 int updateAudio() {
   char asig = 0;
-  //fm运算
+  // FM运算
   int tmpMod = FMA * aModulator.next();
   switch (Wave) {
     default:
-      // asig = aSin.next();
-      asig = aSin.phMod(tmpMod);
+      asig = aSin.phMod(tmpMod);  // asig = aSin.next();
       break;
     case 1:
       asig = aTra.phMod(tmpMod);
