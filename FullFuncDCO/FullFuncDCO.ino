@@ -4,17 +4,19 @@
 #include "Module_Ctrl.h"
 #include "Module_Const.h"
 
-#include <Oscil.h>               // oscillator template
+#include <Oscil.h>  // oscillator template
+#include <WaveShaper.h>
 #include <tables/sin256_int8.h>  // sine table for oscillator
 #include <tables/triangle_analogue512_int8.h>
 #include <tables/square_no_alias512_int8.h>
 #include <tables/saw256_int8.h>
 #include <tables/phasor256_int8.h>
 #include <tables/halfsin256_uint8.h>
-#include <tables/waveshape_chebyshev_4th_256_int8.h>
+#include <tables/waveshape_chebyshev_6th_256_int8.h>
 #include <tables/whitenoise8192_int8.h>
 #include <LowPassFilter.h>
 #include <ADSR.h>
+#include <tables/waveshape_compress_512_to_488_int16.h>
 
 #define FUNCTION_LENGTH 10  //总菜单数
 #define CONTROL_RATE 128    //控制速率
@@ -33,11 +35,13 @@ Oscil<SQUARE_NO_ALIAS512_NUM_CELLS, AUDIO_RATE> aSqu(SQUARE_NO_ALIAS512_DATA);
 Oscil<SAW256_NUM_CELLS, AUDIO_RATE> aSaw(SAW256_DATA);
 Oscil<PHASOR256_NUM_CELLS, AUDIO_RATE> aPha(PHASOR256_DATA);
 Oscil<HALFSIN256_NUM_CELLS, AUDIO_RATE> aHSin(HALFSIN256_DATA);
-Oscil<CHEBYSHEV_4TH_256_NUM_CELLS, AUDIO_RATE> aCheb(CHEBYSHEV_4TH_256_DATA);
+Oscil<CHEBYSHEV_6TH_256_NUM_CELLS, AUDIO_RATE> aCheb(CHEBYSHEV_6TH_256_DATA);
 Oscil<WHITENOISE8192_NUM_CELLS, AUDIO_RATE> aNos(WHITENOISE8192_DATA);
 Oscil<SIN256_NUM_CELLS, AUDIO_RATE> aModulator(SIN256_DATA);
 LowPassFilter lpf;
 ADSR<AUDIO_RATE, AUDIO_RATE> envelope;
+WaveShaper<char> aCheby6th(CHEBYSHEV_6TH_256_DATA);             // 8th harmonic
+WaveShaper<int> aCompress(WAVESHAPE_COMPRESS_512_TO_488_DATA);  // to compress instead of dividing by 2 after adding signals
 
 int POSITION = 0;  //菜单下标
 String function[FUNCTION_LENGTH] = { "Wave", "Shape", "Pitch", "Vol", "Cutof", "ResQ", "Attk", "Rele", "FM", "FMA" };
@@ -53,6 +57,8 @@ void setup() {
 }
 
 int Wave = 0;
+int Shape = 0;
+int ShapeMod = 0;
 int Pitch = 0;
 int Vol = 0;
 int Cutof = 0;
@@ -72,6 +78,7 @@ void updateControl() {
 
   //在这里修改参数 先将1024转化成具体数值 再设置配置
   Wave = param[0] >> 7;   //波表  将1023分成8个波表类型
+  Shape = param[1];       //波形渐变
   Pitch = param[2] + 20;  //频率调整 20hz-2048hz
   Vol = param[3] >> 3;    //0-256
   Cutof = param[4] >> 2;
@@ -91,10 +98,6 @@ void updateControl() {
   if (param[9] > 100) FMA = (param[9] + mozziAnalogRead(IN3_PIN));
   else FMA = param[9];
   aModulator.setFreq(FM);
-
-  Serial.print(FM);  //(0.5~16 + 0.5~16) x pitch
-  Serial.print("     ");
-  Serial.println(FMA);
 
   //设置频率
   switch (Wave) {
@@ -141,12 +144,15 @@ void updateControl() {
 
     analogWrite(OUTA_PIN, Vol);  //对OUTA_PIN输出pwm
   }
+  if (Shape > 30) ShapeMod = mozziAnalogRead(IN3_PIN);
+  else ShapeMod = Shape;
 }
 
 int updateAudio() {
   char asig = 0;
   // FM运算
   int tmpMod = FMA * aModulator.next();
+  //波形选择
   switch (Wave) {
     default:
       asig = aSin.phMod(tmpMod);  // asig = aSin.next();
@@ -173,7 +179,23 @@ int updateAudio() {
       asig = aNos.phMod(tmpMod);
       break;
   }
-  return lpf.next((asig * Vol) >> 8);
+  //波形渐变算法
+  int wtasig = 0;
+  wtasig = aCheby6th.next(asig) * (Shape >> 1 + ShapeMod >> 1) >> 10;
+  // wtasig = 0;
+  // asig = ((asig * (1023 - Shape)) >> 10);
+  // Serial.print("     ");
+  // Serial.print(wtasig);  //(0.5~16 + 0.5~16) x pitch
+  // Serial.print("     ");
+  // Serial.print(asig);
+  // Serial.println("     ");
+  // asig = asig + wtasig;
+
+  asig = aCompress.next(256u + asig + wtasig);
+
+  //计算低通滤波器以及音量
+  asig = lpf.next((asig * Vol) >> 8);
+  return asig;
 }
 
 void loop() {   //这里实时音频处理 尽量不要额外的事情
