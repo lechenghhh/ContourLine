@@ -27,7 +27,7 @@ Q16n16 toneFreq, FMod, pitch;
 
 void setup() {
   Serial.begin(115200);           //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
-  initCtrl(0, 50, 12, 13, HIGH);  //初始化控制参数
+  initCtrl(4, 50, 12, 13, HIGH);  //初始化控制参数
   pinMode(2, OUTPUT);
   pinMode(3, OUTPUT);
   pinMode(4, OUTPUT);
@@ -35,6 +35,7 @@ void setup() {
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
   pinMode(8, OUTPUT);
+  pinMode(11, INPUT_PULLUP);
   startMozzi(CONTROL_RATE);
 }
 
@@ -53,11 +54,11 @@ void updateControl() {
   Serial.println(" ");
 
   //VOCT A7  CV-Freq A4  CV-LV A5
-  voct = mozziAnalogRead(2) * 1.85;  //由于cltest的voct接口阻抗问题 这里需要乘以一个系数 调谐才比较准确
+  voct = mozziAnalogRead(0) ;  //由于cltest的voct接口阻抗问题 这里需要乘以一个系数 调谐才比较准确
   pitch = param[0];
   toneFreq = (2270658 + pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
-  FMod = ((toneFreq >> 8) * (param[1] / 2 + mozziAnalogRead(3) / 2));                //mozziAnalogRead(1)
-  FMA = ((FMod >> 16) * (1 + param[2] + mozziAnalogRead(5)));
+  FMod = ((toneFreq >> 8) * (param[1] / 2 + mozziAnalogRead(1) / 2));                //mozziAnalogRead(1)
+  FMA = ((FMod >> 16) * (1 + param[2] + mozziAnalogRead(2)));
   aCarrier.setFreq_Q16n16(toneFreq);
   aModulator.setFreq_Q16n16(FMod);
 
