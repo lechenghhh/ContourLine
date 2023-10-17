@@ -20,8 +20,8 @@ Oscil<COS256_NUM_CELLS, CONTROL_RATE> kModIndex(COS256_DATA);
 
 int voct = 500;
 int POSITION = 0;
-String function[3] = { "Carri", "ModFq", "ModLV" };
-int param[3] = { 1, 2, 3 };
+String function[4] = { "Carri", "ModFq", "ModLV","Wave" };
+int param[4] = { 1, 2, 3 ,4};
 Q16n16 FMA;
 Q16n16 toneFreq, FMod, pitch;
 
