@@ -10,6 +10,7 @@
 #include <tables/triangle_dist_squared_2048_int8.h>
 #include <tables/waveshape_chebyshev_6th_256_int8.h>
 #include <tables/pinknoise8192_int8.h>
+#include <tables/waveshape_tanh_int8.h>//wt
 #include <tables/waveshape_compress_512_to_488_int16.h>
 #include <mozzi_fixmath.h>
 #include "Module_Ctrl.h"
@@ -33,7 +34,7 @@ Oscil<CHEBYSHEV_6TH_256_NUM_CELLS, AUDIO_RATE> aCheb6(CHEBYSHEV_6TH_256_DATA);
 Oscil<128, AUDIO_RATE> aCheb7(CHEBYSHEV_5TH_256_DATA);
 Oscil<8192, AUDIO_RATE> aNos(PINKNOISE8192_DATA);
 
-WaveShaper<char> aCheby6th(CHEBYSHEV_6TH_256_DATA);             // 8th harmonic
+WaveShaper<char> aCheby6th(WAVESHAPE_TANH_DATA);             // 8th harmonic
 WaveShaper<int> aCompress(WAVESHAPE_COMPRESS_512_TO_488_DATA);  // to compress instead of dividing by 2 after adding signals
 
 Oscil<256, AUDIO_RATE> aCarrier(SIN256_DATA);
