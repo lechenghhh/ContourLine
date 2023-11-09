@@ -81,7 +81,7 @@ void updateControl() {
   // Serial.println("func");           //func param
   // Serial.println(param[POSITION]);  //func param
   // Serial.println(" ");
-  Serial.print("d11= ");
+  Serial.print("d11 = ");
   Serial.println(digitalRead(11));
 
   //VOCT A7  CV-Freq A4  CV-LV A5
@@ -95,7 +95,7 @@ void updateControl() {
   Shape = param[1];      //波形渐变
 
   //波形切换触发器
-  if (digitalRead(11) != WaveTrigger && WaveTrigger == 0) {
+  if (digitalRead(11) != WaveTrigger && WaveTrigger == 0) {//d13按钮可以用来测试
     WaveTrigger = 1;
     WaveMod++;
     if (WaveMod > 6) WaveMod = 0;
@@ -105,7 +105,7 @@ void updateControl() {
   }
   if (Wave < 7) {              //噪音不执行波表循环
     if (Wave + WaveMod > 6) {  //使波表的选择循环起来
-      Wave = WaveMod - Wave;
+      Wave = Wave +WaveMod-6;
     } else {
       Wave = WaveMod + Wave;
     }
