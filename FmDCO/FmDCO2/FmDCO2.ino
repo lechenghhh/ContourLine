@@ -62,7 +62,7 @@ void setup() {
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
   pinMode(8, OUTPUT);
-  pinMode(11, INPUT_PULLUP);
+  pinMode(11, INPUT);
   startMozzi(CONTROL_RATE);
 }
 
