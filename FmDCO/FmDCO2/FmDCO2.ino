@@ -46,7 +46,8 @@ Q16n16 POSITION = 0;
 String function[FUNC_LENGTH] = { "WT", "WS", "PTC", "ModFq", "ModLV" };
 int param[FUNC_LENGTH] = { 1, 2, 3, 0 };
 Q16n16 FMA;
-Q16n16 Wave;
+int Wave;
+int WaveMod = 0;
 Q16n16 WaveTrigger = 0;
 Q16n16 toneFreq, FMod, pitch;
 Q16n16 Shape = 0;
@@ -63,6 +64,7 @@ void setup() {
   pinMode(7, OUTPUT);
   pinMode(8, OUTPUT);
   pinMode(11, INPUT);
+  digitalWrite(11, LOW);
   startMozzi(CONTROL_RATE);
 }
 
@@ -75,30 +77,45 @@ void updateControl() {
     digitalWrite(i, HIGH);
   digitalWrite(POSITION + 2, LOW);
 
-  Serial.print(POSITION);           //func param
-  Serial.println("func");           //func param
-  Serial.println(param[POSITION]);  //func param
-  Serial.println(" ");
+  // Serial.print(POSITION);           //func param
+  // Serial.println("func");           //func param
+  // Serial.println(param[POSITION]);  //func param
+  // Serial.println(" ");
+  Serial.print("d11= ");
+  Serial.println(digitalRead(11));
 
-  // String function[FUNC_LENGTH] = { "WT", "WS","PTC", "ModFq", "ModLV", };
   //VOCT A7  CV-Freq A4  CV-LV A5
   voct = mozziAnalogRead(0);  //由于cltest的voct接口阻抗问题 这里需要乘以一个系数 调谐才比较准确
-  pitch = param[2];
+
+  pitch = param[2];                                                                  // { "WT", "WS","PTC", "ModFq", "ModLV", };
   toneFreq = (2270658 + pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
-  FMod = ((toneFreq >> 8) * (param[3] / 2 + mozziAnalogRead(1) / 2));                //mozziAnalogRead(1)
+  FMod = ((toneFreq >> 8) * (param[3] / 2 + mozziAnalogRead(1) / 2));                // mozziAnalogRead(1)
   FMA = ((FMod >> 16) * (1 + param[4] + mozziAnalogRead(2)));
   Wave = param[0] >> 7;  //波表  将1023分成8个波表类型
   Shape = param[1];      //波形渐变
 
   //波形切换触发器
-  if (digitalRead(2) != WaveTrigger && WaveTrigger == 0) {
+  if (digitalRead(11) != WaveTrigger && WaveTrigger == 0) {
     WaveTrigger = 1;
-    Wave++;
-    if (Wave > 6) Wave = 0;
+    WaveMod++;
+    if (WaveMod > 6) WaveMod = 0;
   }
-  if (digitalRead(2) != WaveTrigger && WaveTrigger == 1) {
+  if (digitalRead(11) != WaveTrigger && WaveTrigger == 1) {
     WaveTrigger = 0;
   }
+  if (Wave < 7) {              //噪音不执行波表循环
+    if (Wave + WaveMod > 6) {  //使波表的选择循环起来
+      Wave = WaveMod - Wave;
+    } else {
+      Wave = WaveMod + Wave;
+    }
+    if (Wave < 0) Wave = 0;
+  }
+
+  Serial.print("waveMod= ");
+  Serial.print(WaveMod);
+  Serial.print(" wave= ");
+  Serial.println(Wave);
 
   // aCarrier.setFreq_Q16n16(toneFreq);//给主波形设置频率、音高
   aSin1.setFreq_Q16n16(toneFreq);   //给主波形设置频率、音高
