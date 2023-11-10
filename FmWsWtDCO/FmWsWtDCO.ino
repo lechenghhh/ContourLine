@@ -13,6 +13,12 @@
 
 #include <tables/phasor256_int8.h>
 #include <tables/triangle_dist_cubed_2048_int8.h>
+#include <tables/triangle_hermes_2048_int8.h>
+#include <tables/triangle_valve_2_2048_int8.h>
+#include <tables/square_analogue512_int8.h>
+#include <tables/waveshape1_softclip_int8.h>
+#include <tables/waveshape_sigmoid_int8.h>
+#include <tables/saw_analogue512_int8.h>
 
 #include <tables/waveshape_tanh_int8.h>  //wt
 #include <tables/waveshape_compress_512_to_488_int16.h>
@@ -25,15 +31,22 @@
 #define FUNC_LENGTH 5     // menu length
 
 Oscil<256, AUDIO_RATE> aSin1(SIN256_DATA);
-Oscil<256, AUDIO_RATE> aHSinWin(HALFSINWINDOW512_DATA);
-Oscil<TRIANGLE_DIST_SQUARED_2048_NUM_CELLS, AUDIO_RATE> aTriDsitSqu(TRIANGLE_DIST_SQUARED_2048_DATA);
-Oscil<100, AUDIO_RATE> aSqu4(SQUARE_NO_ALIAS512_DATA);  //SQUARE_NO_ALIAS512_NUM_CELLS
-Oscil<128, AUDIO_RATE> aCheb5(CHEBYSHEV_5TH_256_DATA);
-Oscil<CHEBYSHEV_6TH_256_NUM_CELLS, AUDIO_RATE> aCheb6(CHEBYSHEV_6TH_256_DATA);
-Oscil<SAW256_NUM_CELLS, AUDIO_RATE> aSaw(SAW256_DATA);
 Oscil<PHASOR256_NUM_CELLS, AUDIO_RATE> aPha(PHASOR256_DATA);
-
+Oscil<TRIANGLE_HERMES_2048_NUM_CELLS, AUDIO_RATE> aTriHermes(TRIANGLE_HERMES_2048_DATA);
+Oscil<TRIANGLE_HERMES_2048_NUM_CELLS, AUDIO_RATE> aTriValve(TRIANGLE_VALVE_2_2048_DATA);
 Oscil<TRIANGLE_DIST_CUBED_2048_NUM_CELLS, AUDIO_RATE> aTriDsitCub(TRIANGLE_DIST_CUBED_2048_DATA);
+Oscil<TRIANGLE_DIST_SQUARED_2048_NUM_CELLS, AUDIO_RATE> aTriDsitSqu(TRIANGLE_DIST_SQUARED_2048_DATA);
+Oscil<SQUARE_ANALOGUE512_SAMPLERATE, AUDIO_RATE> aSquAnalogue(SQUARE_ANALOGUE512_DATA);
+Oscil<512, AUDIO_RATE> aSqu4(SQUARE_NO_ALIAS512_DATA);  //SQUARE_NO_ALIAS512_NUM_CELLS
+
+Oscil<SAW_ANALOGUE512_NUM_CELLS, AUDIO_RATE> aSawAnalogue(SAW_ANALOGUE512_DATA);
+Oscil<SAW256_NUM_CELLS, AUDIO_RATE> aSaw(SAW256_DATA);
+Oscil<256, AUDIO_RATE> aHSinWin(HALFSINWINDOW512_DATA);
+Oscil<WAVESHAPE_TANH_NUM_CELLS, AUDIO_RATE> aTanh(WAVESHAPE_TANH_DATA);
+Oscil<WAVESHAPE_SIGMOID_NUM_CELLS, AUDIO_RATE> aSigmoid(WAVESHAPE_SIGMOID_DATA);
+Oscil<256, AUDIO_RATE> aCheb5(CHEBYSHEV_5TH_256_DATA);
+Oscil<CHEBYSHEV_6TH_256_NUM_CELLS, AUDIO_RATE> aCheb6(CHEBYSHEV_6TH_256_DATA);
+Oscil<WAVESHAPE1_SOFTCLIP_NUM_CELLS, AUDIO_RATE> aSoftClip(WAVESHAPE1_SOFTCLIP_DATA);
 
 WaveShaper<char> wsTanh(WAVESHAPE_TANH_DATA);                // 8th harmonic
 WaveShaper<int> wsComp(WAVESHAPE_COMPRESS_512_TO_488_DATA);  // to compress instead of dividing by 2 after adding signals
@@ -87,18 +100,18 @@ void updateControl() {
   toneFreq = (2270658 + pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
   FmFreq = ((toneFreq >> 8) * (param[2] / 2 + mozziAnalogRead(1) / 2));              // mozziAnalogRead(1)
   FMA = ((FmFreq >> 16) * (1 + param[3] + mozziAnalogRead(2)));
-  Wave = param[4] >> 7;  //波表  将1023分成8个波表类型
+  Wave = param[4] >> 6;  //波表  将1023分成16个波表类型
 
   //波形切换触发器
   if (digitalRead(11) != WaveTrigger && WaveTrigger == 0) {  //d13按钮可以用来测试
     WaveTrigger = 1;
     WaveMod++;
-    if (WaveMod > 6) WaveMod = 0;
+    if (WaveMod > 15) WaveMod = 0;
   }
   if (digitalRead(11) != WaveTrigger && WaveTrigger == 1) {
     WaveTrigger = 0;
   }
-  if (Wave < 7) {              //噪音不执行波表循环
+  if (Wave < 16) {
     if (Wave + WaveMod > 6) {  //使波表的选择循环起来
       Wave = Wave + WaveMod - 6;
     } else {
@@ -112,16 +125,23 @@ void updateControl() {
   Serial.print(" wave= ");
   Serial.println(Wave);
 
-  aSin1.setFreq_Q16n16(toneFreq);        //给主波形设置频率、音高
-  aHSinWin.setFreq_Q16n16(toneFreq);     //给主波形设置频率、音高
-  aTriDsitSqu.setFreq_Q16n16(toneFreq);  //给主波形设置频率、音高
-  aSqu4.setFreq_Q16n16(toneFreq);        //给主波形设置频率、音高
-  aCheb6.setFreq_Q16n16(toneFreq);       //给主波形设置频率、音高
-  aCheb5.setFreq_Q16n16(toneFreq);       //给主波形设置频率、音高
-  aSaw.setFreq_Q16n16(toneFreq);         //给主波形设置频率、音高
-  aPha.setFreq_Q16n16(toneFreq);         //给主波形设置频率、音高
+  aSin1.setFreq_Q16n16(toneFreq);         //给主波形设置频率、音高
+  aPha.setFreq_Q16n16(toneFreq);          //给主波形设置频率、音高
+  aTriHermes.setFreq_Q16n16(toneFreq);    //给主波形设置频率、音高
+  aTriValve.setFreq_Q16n16(toneFreq);     //给主波形设置频率、音高
+  aTriDsitCub.setFreq_Q16n16(toneFreq);   //给主波形设置频率、音高
+  aTriDsitSqu.setFreq_Q16n16(toneFreq);   //给主波形设置频率、音高
+  aSquAnalogue.setFreq_Q16n16(toneFreq);  //给主波形设置频率、音高
+  aSqu4.setFreq_Q16n16(toneFreq);         //给主波形设置频率、音高
 
-  aTriDsitCub.setFreq_Q16n16(toneFreq);  //给主波形设置频率、音高
+  aSawAnalogue.setFreq_Q16n16(toneFreq);  //给主波形设置频率、音高
+  aSaw.setFreq_Q16n16(toneFreq);          //给主波形设置频率、音高
+  aHSinWin.setFreq_Q16n16(toneFreq);      //给主波形设置频率、音高
+  aSigmoid.setFreq_Q16n16(toneFreq);      //给主波形设置频率、音高
+  aTanh.setFreq_Q16n16(toneFreq);         //给主波形设置频率、音高
+  aCheb6.setFreq_Q16n16(toneFreq);        //给主波形设置频率、音高
+  aCheb5.setFreq_Q16n16(toneFreq);        //给主波形设置频率、音高
+  aSoftClip.setFreq_Q16n16(toneFreq);     //给主波形设置频率、音高
 
   aModulator.setFreq_Q16n16(FmFreq);
 
@@ -143,49 +163,49 @@ AudioOutput_t updateAudio() {
       asig = MonoOutput::from8Bit(aSin1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 1:
-      asig = MonoOutput::from8Bit(aHSinWin.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
-      break;
-    case 2:
-      asig = MonoOutput::from8Bit(aTriDsitSqu.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
-      break;
-    case 3:
-      asig = MonoOutput::from8Bit(aSqu4.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
-      break;
-    case 4:
-      asig = MonoOutput::from8Bit(aCheb5.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
-      break;
-    case 5:
-      asig = MonoOutput::from8Bit(aCheb6.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
-      break;
-    case 6:
-      asig = MonoOutput::from8Bit(aSaw.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
-      break;
-    case 7:
       asig = MonoOutput::from8Bit(aPha.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
-    case 8:
+    case 2:
+      asig = MonoOutput::from8Bit(aTriHermes.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 3:
+      asig = MonoOutput::from8Bit(aTriValve.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 4:
       asig = MonoOutput::from8Bit(aTriDsitCub.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 5:
+      asig = MonoOutput::from8Bit(aSquAnalogue.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 6:
+      asig = MonoOutput::from8Bit(aSqu4.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 7:
+      asig = MonoOutput::from8Bit(aSawAnalogue.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 8:
+      asig = MonoOutput::from8Bit(aSaw.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 9:
-      asig = MonoOutput::from8Bit(aTriDsitCub.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      asig = MonoOutput::from8Bit(aHSinWin.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 10:
-      asig = MonoOutput::from8Bit(aTriDsitCub.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      asig = MonoOutput::from8Bit(aTanh.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 11:
-      asig = MonoOutput::from8Bit(aTriDsitCub.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      asig = MonoOutput::from8Bit(aSigmoid.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 12:
-      asig = MonoOutput::from8Bit(aTriDsitCub.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      asig = MonoOutput::from8Bit(aCheb5.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 13:
-      asig = MonoOutput::from8Bit(aTriDsitCub.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      asig = MonoOutput::from8Bit(aCheb6.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 14:
-      asig = MonoOutput::from8Bit(aTriDsitCub.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      asig = MonoOutput::from8Bit(aSoftClip.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 15:
-      asig = MonoOutput::from8Bit(aTriDsitCub.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      asig = MonoOutput::from8Bit(aSawAnalogue.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
   }
   //波形渐变算法
