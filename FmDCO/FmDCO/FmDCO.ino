@@ -27,7 +27,7 @@ Q16n16 toneFreq, FMod, pitch;
 
 void setup() {
   Serial.begin(115200);           //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
-  initCtrl(4, 50, 12, 13, HIGH);  //初始化控制参数
+  initCtrl(0, 50, 12, 13, HIGH);  //初始化控制参数
   pinMode(2, OUTPUT);
   pinMode(3, OUTPUT);
   pinMode(4, OUTPUT);
@@ -41,7 +41,7 @@ void setup() {
 
 //三个旋钮 Carrier A0  ModFreq A1  ModLV A3    C
 void updateControl() {
-  POSITION = getPostition(POSITION, 0);         //获取菜单下标
+  POSITION = getPostition(POSITION, 4);         //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);  //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   // displayLED(ledGroup[POSITION]);                      //display  //用以展示控制
   for (int i = 2; i < 9; i++)
@@ -62,11 +62,11 @@ void updateControl() {
   aCarrier.setFreq_Q16n16(toneFreq);
   aModulator.setFreq_Q16n16(FMod);
 
-  Serial.print(toneFreq);
-  Serial.print("--");
-  Serial.print(FMod);
-  Serial.print("--");
-  Serial.println(FMA);
+  // Serial.print(toneFreq);
+  // Serial.print("--");
+  // Serial.print(FMod);
+  // Serial.print("--");
+  // Serial.println(FMA);
 }
 
 AudioOutput_t updateAudio() {
