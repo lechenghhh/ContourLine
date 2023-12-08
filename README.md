@@ -2,14 +2,10 @@
 ### The Eurorack modular is based on the Arduino-Mozzi library
 ## Target
 ### Dco (FM/WaveTable/Noise/Poly/Chord...)
-### Quantizer
-### Sequencer
-### ADSR x2
-### LFO x2
 ### other?
 ## Image
 ![image](contourline1.0.jpg)
-![image](https://github.com/lechenghhh/ContourLine/blob/master/contourline1.0.jpg)
+![image](https://github.com/lechenghhh/ContourLine/blob/master/ContourLine1.0.jpg)
 
 
 ## HardWare Version
