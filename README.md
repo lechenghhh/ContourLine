@@ -10,5 +10,7 @@
 
 ## HardWare Version
 ### 0.6
+
 ### 1.0
+#### 引脚说明 输入 I(voct) analogRead(0) II analogRead(1) III analogRead(2) IV analogRead(3) OutA(也可以做gate输入) digitalRead(11) 旋钮电位获取 Knob analogRead(4)
 ###
