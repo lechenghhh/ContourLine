@@ -136,7 +136,8 @@ AudioOutput_t updateAudio() {
   char asig = 0;
 
   switch (Wave) {
-    default:
+    // default:
+    case 4:
       asig = MonoOutput::from8Bit(aSin1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 1:
@@ -148,7 +149,8 @@ AudioOutput_t updateAudio() {
     case 3:
       asig = MonoOutput::from8Bit(aLofi3.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
-    case 4:
+      // case 4:
+    default:
       asig = MonoOutput::from8Bit(aPha.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 5:
