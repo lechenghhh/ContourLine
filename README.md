@@ -2,7 +2,7 @@
 __Arduino DCO__  
 __The Eurorack modular is based on the Arduino-Mozzi library__
 
-`Welcome` 这是一个开源的Eurorack数字振荡器 基于arduino nano  
+`Welcome!` 这是一个开源的Eurorack数字振荡器 基于arduino nano和mozzi库实现  
 接口介绍:1xvoct 5个八度 1xWaveShaper CV Input 1x FM Freq CV 1x FM Amount CV 1x WaveType Gate(可以通过高电平触发波形切换功能) 1x Audio Output  
 可以通过上下按钮来切换当前旋钮可调节的功能与参数列表  
 当前功能通过8位数显来显示 当旋钮拧到旧的参数附近 才可以解锁当前参数的修改 数码管的亮度增加则表示已解锁当前参数  
@@ -10,6 +10,7 @@ gerber/bom文件与清单已经提供 如果不了解如何下单pcb板 可以�
 画面展示  
 焊接环节由于都是贴片元件 可能需要你有插件焊接的基础 使用镊子和焊台来完成  
 程序烧录教程 mozzi library依赖说明 视频演示  
+<img src="Hardware/img/面板效果图2.jpg" height=400 width=200>
 
 ### 硬件设计说明：
 1.由于是使用arduino nano控制器，好处就是它可以直接读取0-5v的输入值 符合一部分eurorack cv的范围而无需额外电路进行放大 使得pcb板只需要两块和比较少的元件 就可以得到整个模块的主体  
@@ -34,7 +35,7 @@ arduino nano没有dac模块 是如何输出较高质量的音频的? 原理就�
 
 最后 程序并不是十分完美 甚至可能存在bug 如果有明显的问题也可以留言区交流推动改进。所以也就当抛砖引玉 让大家了解arduino开发合成器的思路。
 
-### 现有实现:
+### 现有程序实现:
 [波型渐变2算子FM振荡器 `(推荐!)`](Software/FmWsWtDCO/readme.md "Software/FmWsWtDCO/readme.md")  
 [Avr-wt-synth故障振荡器](Software/Avr-wt-synth/readme.md "Software/Avr-wt-synth/readme.md")  
 [和弦/加法/FM振荡器](Software/TripleDCOForCL/readme.md "Software/TripleDCOForCL/readme.md")  
