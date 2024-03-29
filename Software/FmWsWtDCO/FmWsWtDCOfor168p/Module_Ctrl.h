@@ -4,16 +4,16 @@
 
 #define KNOB_MAX_RANGE 1024  //旋钮最大值
 // #define FUNCTION_LENGTH 10   //总菜单数
-int KNOB;
-int BTN1;
-int BTN2;
-int KNOB_CHANGE_RANGE;
-int DEF_LV;
+byte KNOB;
+byte BTN1;
+byte BTN2;
+byte KNOB_CHANGE_RANGE;
+byte DEF_LV;
 // int position = 0;  //modual ctrl position 当前菜单的位置
 
-int btnHover = 0;    //按下事件判断
-int btnTime = 0;     //长按事件判断
-int knobEnable = 0;  //旋钮事件允许
+byte btnHover = 0;    //按下事件判断
+byte btnTime = 0;     //长按事件判断
+byte knobEnable = 0;  //旋钮事件允许
 
 /*
   konbPin           旋钮模拟引脚
@@ -94,4 +94,11 @@ int getParam(int old_param) {
     old_param = mozziAnalogRead(KNOB);
   }
   return old_param;
+}
+
+/*
+  获取旋钮是否处于编辑状态 以便视图进行显示操作
+*/
+int getKnobEnable() {
+  return knobEnable;
 }

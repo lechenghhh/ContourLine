@@ -56,7 +56,7 @@ void updateControl() {
   //VOCT A7  CV-Freq A4  CV-LV A5
   voct = mozziAnalogRead(2) ;  //由于cltest的voct接口阻抗问题 这里需要乘以一个系数 调谐才比较准确
   pitch = param[0];
-  toneFreq = (2270658 + pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
+  toneFreq = (2143658 + pitch * 5000) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
   FMod = ((toneFreq >> 8) * (param[1] / 2 + mozziAnalogRead(5) / 2));                //mozziAnalogRead(1)
   FMA = ((FMod >> 16) * (1 + param[2] + mozziAnalogRead(3)));
   aCarrier.setFreq_Q16n16(toneFreq);

@@ -2,17 +2,18 @@
   电位器 按钮 控制功能
 */
 
+#define KNOB_MAX_RANGE 1024  //旋钮最大值
+// #define FUNCTION_LENGTH 10   //总菜单数
 int KNOB;
 int BTN1;
 int BTN2;
 int KNOB_CHANGE_RANGE;
 int DEF_LV;
+// int position = 0;  //modual ctrl position 当前菜单的位置
 
-int btnHover1 = 0;   //按下事件判断1
-int btnTime1 = 0;    //长按事件判断1
-int btnHover2 = 0;   //按下事件判断2
-int btnTime2 = 0;    //长按事件判断2
-int knobEnable = 0;  //旋钮编辑状态
+int btnHover = 0;    //按下事件判断
+int btnTime = 0;     //长按事件判断
+int knobEnable = 0;  //旋钮事件允许
 
 /*
   konbPin           旋钮模拟引脚
@@ -44,44 +45,25 @@ void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int de
   返回经过控制逻辑处理后的下标
 */
 int getPostition(int position, int functionLength) {
-  // Serial.println(mozziAnalogRead(KNOB));   //knob
-  // Serial.println(digitalRead(BTN1));  //btn1
-  // Serial.println(digitalRead(BTN2));  //btn2
-  // Serial.println(btnHover1);   //btn2
-  // Serial.println(btnTime1);    //btn2
+  // Serial.println(mozziAnalogRead(KNOB));  //knob
+  // Serial.println(digitalRead(BTN1));      //btn1
+  // Serial.println(digitalRead(BTN2));      //btn2
+
+  // Serial.println(btnHover);   //btn2
+  // Serial.println(btnTime);    //btn2
+
 
   //按下事件
   if (digitalRead(BTN1) != DEF_LV) {
-    btnHover1 = 1;
-    btnTime1++;
-  } else if (digitalRead(BTN2) != DEF_LV) {
-    btnHover2 = 1;
-    btnTime2++;
+    btnHover = 1;
+    btnTime++;
   }
   //抬起事件
-  if (digitalRead(BTN1) == DEF_LV && btnHover1 == 1) {
+  if (digitalRead(BTN1) == DEF_LV && btnHover == 1) {
     //长按按钮事件
-    if (btnTime1 > 50) {
+    if (btnTime > 100) {
       position = 0;
       Serial.println("btn long");  //knob
-    }
-    //短按按钮事件
-    else {
-      if (position <= 0) {
-        position = functionLength;
-      }
-      position--;
-      Serial.println("btn short");  //knob
-    }
-    btnHover1 = 0;
-    btnTime1 = 0;
-    knobEnable = 0;
-    Serial.println(knobEnable);  //btn2
-  } else if (digitalRead(BTN2) == DEF_LV && btnHover2 == 1) {
-    //长按按钮事件
-    if (btnTime2 > 50) {
-      position = 0;
-      Serial.println("btn long 2");  //knob
     }
     //短按按钮事件
     else {
@@ -89,24 +71,20 @@ int getPostition(int position, int functionLength) {
         position = -1;
       }
       position++;
-      Serial.println("btn short 2");  //knob
+      Serial.println("btn short");  //knob
     }
-    btnHover2 = 0;
-    btnTime2 = 0;
+    btnHover = 0;
+    btnTime = 0;
     knobEnable = 0;
     Serial.println(knobEnable);  //btn2
   }
   return position;
 }
 
-/*
-  根据旧的值传入该方法判断旋钮编辑状态来返回新修改的值
-*/
 int getParam(int old_param) {
   // Serial.print(knobEnable);   //btn2
   // Serial.println(old_param);  //btn2
-  // Serial.print("   mozziAnalogRead(KNOB) ");  //btn2
-  // Serial.println(mozziAnalogRead(KNOB));      //btn2
+
   //旋钮事件
   int knob_dec = mozziAnalogRead(KNOB) - old_param;  //检测旋钮进入原参数范围
   if (-KNOB_CHANGE_RANGE < knob_dec && knob_dec < KNOB_CHANGE_RANGE) {
@@ -116,11 +94,4 @@ int getParam(int old_param) {
     old_param = mozziAnalogRead(KNOB);
   }
   return old_param;
-}
-
-/*
-  获取旋钮是否处于编辑状态 以便视图进行显示操作
-*/
-int getKnobEnable() {
-  return knobEnable;
 }
