@@ -22,8 +22,8 @@ int knobEnable = 0;  //旋钮编辑状态
   default_level     按钮默认电平
 */
 void initCtrl(int konbPin, int konbChangeRange, int btn1Pin, int btn2Pin, int default_level) {
-  pinMode(GATE_PIN, INPUT);
-  digitalWrite(GATE_PIN, LOW);
+  pinMode(11, INPUT);
+  digitalWrite(11, LOW);
   KNOB = konbPin;
   KNOB_CHANGE_RANGE = konbChangeRange;
   BTN1 = btn1Pin;
