@@ -1,5 +1,8 @@
 程序改造自<a href="https://github.com/stosem/avr-wt-synth">https://github.com/stosem/avr-wt-synth<a/>  
-avr-wt-synth (Glitch Synth)
+avr-wt-synth (Glitch Synth)  
+原作者: stosem  
+程序适配: lecheng  
+
 
 # Info
 

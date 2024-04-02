@@ -1,6 +1,7 @@
 # 2xOP FM WaveShape DCO 
 ### base on Arduino nano 328p
-#### for ContourLine 2.1
+#### for ContourLine 2.1  
+作者: lecheng  
 
  0.         8位数码管显示字母        参数名词EN                   参数名词CN                    参数说明
  1.         P                       Pitch                       音高调节                      C1-A2
