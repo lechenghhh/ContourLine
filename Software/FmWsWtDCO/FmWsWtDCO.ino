@@ -151,17 +151,17 @@ void updateControl() {
 
   //波形切换触发器
   if (digitalRead(GATE_PIN) != WaveTrig && WaveTrig == 0) {  //d13按钮可以用来测试
-    
-    // if (RangeType == 0) {
-    // }
-    // if (RangeType != 0) {
-    // }
     WaveTrig = 1;
-    // WavePosition += WaveChange /** (rand() % WaveChangeRandom + 1)*/;
-    // if (WavePosition > 1073741823) WavePosition = 0;
+
+    if (RangeType == 0) {  //lfo模式 用于rst
+    }
+    if (RangeType != 0) {  //vco模式 用于切换波形
+      WavePosition += WaveChange /** (rand() % WaveChangeRandom + 1)*/;
+      if (WavePosition > 1073741823) WavePosition = 0;
+    }
   }
   if (digitalRead(GATE_PIN) != WaveTrig && WaveTrig == 1) {
-    // WaveTrig = 0;
+    WaveTrig = 0;
   }
   WaveType = (WaveSelect + WavePosition) % 16;
 
@@ -205,14 +205,14 @@ void updateControl() {
   // Serial.print(OP2Freq);
   // Serial.print("-OP2Amt-");
   // Serial.println(OP2Amt);
-  // Serial.print(" d11= ");
-  // Serial.print(digitalRead(11));
-  // Serial.print("-WaveTrig= ");
-  // Serial.print(WaveTrig);
-  // Serial.print(" WaveType= ");
-  // Serial.print(WaveType);
-  // Serial.print("-WaveChange= ");
-  // Serial.println(WaveChange);
+  Serial.print(" d11= ");
+  Serial.print(digitalRead(11));
+  Serial.print("-WaveTrig= ");
+  Serial.print(WaveTrig);
+  Serial.print(" WaveType= ");
+  Serial.print(WaveType);
+  Serial.print("-WaveChange= ");
+  Serial.println(WaveChange);
   // Serial.print("-ShapeGradient-");
   // Serial.println(ShapeGradient);
 }
@@ -223,6 +223,7 @@ AudioOutput_t updateAudio() {
   switch (WaveType) {
     default:
       asig = MonoOutput::from8Bit(aSin1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      // if (RangeType == 0&&WaveTrig == 1) asig = MonoOutput::from8Bit(aSin1.phMod(0));
       break;
     case 1:
       asig = MonoOutput::from8Bit(aPha.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
