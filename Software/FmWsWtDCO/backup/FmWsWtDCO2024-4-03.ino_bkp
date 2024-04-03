@@ -31,7 +31,7 @@
 
 #include <tables/waveshape_compress_512_to_488_int16.h>  //wt compress
 
-/*lecheng的控制/显示模块封装*/
+//lecheng的控制/显示模块封装
 #include "Module_LEDDisplay.h"
 #include "Module_Ctrl.h"
 #include "Module_Const.h"
@@ -54,6 +54,7 @@
 #define BTN1_PIN 12  //
 #define BTN2_PIN 13  //
 
+Oscil<SIN512_NUM_CELLS, AUDIO_RATE> aSin1(SIN512_DATA);
 Oscil<PHASOR256_NUM_CELLS, AUDIO_RATE> aPha(PHASOR256_DATA);
 Oscil<TRIANGLE_HERMES_2048_NUM_CELLS, AUDIO_RATE> aTriHermes(TRIANGLE_HERMES_2048_DATA);
 Oscil<TRIANGLE_VALVE_2_2048_NUM_CELLS, AUDIO_RATE> aTriValve(TRIANGLE_VALVE_2_2048_DATA);
@@ -81,8 +82,8 @@ WaveShaper<char> wsCH5th(CHEBYSHEV_5TH_256_DATA);            // WaveShaper
 WaveShaper<char> wsCH6th(CHEBYSHEV_6TH_256_DATA);            // WaveShaper
 WaveShaper<int> wsComp(WAVESHAPE_COMPRESS_512_TO_488_DATA);  // to compress instead of dividing by 2 after adding signals
 
-Oscil<SIN512_NUM_CELLS, AUDIO_RATE> osc1(SIN512_DATA);
-Oscil<256, AUDIO_RATE> osc2(SIN512_DATA);
+Oscil<256, AUDIO_RATE> aModulator(SIN512_DATA);
+Oscil<256, CONTROL_RATE> kModIndex(SIN512_DATA);
 
 Q16n16 POSITION = 0;
 String function[FUNC_LENGTH] = { "Pitch", "Range", "ShapeG", "WaveS", "OPFreq", "OPAmt", "WaveT", "WaveC" };
@@ -112,14 +113,12 @@ void setup() {
 //三个旋钮 Carrier A0  ModFreq A1  ModLV A3    C
 void updateControl() {
 
-  /*控制参数获取与显示逻辑*/
   POSITION = getPostition(POSITION, FUNC_LENGTH);                   //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);                      //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                                   //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);                   //如果处在非编辑状态 led将半灭显示
   Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
 
-  /*震荡与音高范围计算*/
   Pitch = param[0];           //音高旋钮参数
   RangeType = param[1] >> 8;  //震荡范围
   switch (RangeType) {
@@ -140,22 +139,16 @@ void updateControl() {
       FreqRange = OSC_VOCT_COEFFICIENT;
       break;
   }
-
-  /*波形渐变量*/
   ShapeGradient = param[2] >> 7;
-  ShapeSelf = param[3] >> 3;                 //0-128
-  ShapeMod = mozziAnalogRead(CV1_PIN) >> 3;  //波形渐变CV值获取A1
-
-  /*FM量*/
+  ShapeSelf = param[3] >> 3;                                                                                   //0-128
+  ShapeMod = mozziAnalogRead(CV1_PIN) >> 3;                                                                    //波形渐变CV值获取A1
   OP1Freq = (BaseFreq + Pitch * FreqRange) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));  // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
   OP2Freq = ((OP1Freq >> 8) * (param[4] / 2 + mozziAnalogRead(CV2_PIN) / 2));                                  // mozziAnalogRead(1)
   OP2Amt = ((OP2Freq >> 16) * (1 + param[5] + mozziAnalogRead(CV3_PIN)));
-  osc1.setFreq_Q16n16(OP1Freq);  //给主波形设置频率
-  osc2.setFreq_Q16n16(OP2Freq);  //给算子设置频率
-
   Q16n16 WaveSelect = param[6] >> 6;  //波表  将1023分成16个波表类型
   Q16n16 WaveChange = param[7] >> 6;  //偏移量为16
   // Q16n16 WaveChangeRandom = (param[8] >> 6);
+
   //波形切换触发器
   if (digitalRead(GATE_PIN) != WaveTrig && WaveTrig == 0) {  //d13按钮可以用来测试
     WaveTrig = 1;
@@ -172,57 +165,24 @@ void updateControl() {
   }
   WaveType = (WaveSelect + WavePosition) % 16;
 
-  //设置波形
-  switch (WaveType) {
-    default:
-      osc1.setTable(SIN512_DATA);
-      break;
-    case 1:
-      osc1.setTable(PHASOR256_DATA);
-      break;
-    case 2:
-      osc1.setTable(TRIANGLE_HERMES_2048_DATA);
-      break;
-    case 3:
-      osc1.setTable(TRIANGLE_VALVE_2_2048_DATA);
-      break;
-    case 4:
-      osc1.setTable(TRIANGLE_DIST_CUBED_2048_DATA);
-      break;
-    case 5:
-      osc1.setTable(TRIANGLE_DIST_SQUARED_2048_DATA);
-      break;
-    case 6:
-      osc1.setTable(SQUARE_ANALOGUE512_DATA);
-      break;
-    case 7:
-      osc1.setTable(SQUARE_NO_ALIAS512_DATA);
-      break;
-    case 8: 
-      osc1.setTable(SAW_ANALOGUE512_DATA);
-      break;
-    case 9:
-      osc1.setTable(SAW256_DATA);
-      break;
-    case 10:
-      osc1.setTable(HALFSINWINDOW512_DATA);
-      break;
-    case 11:
-      osc1.setTable(WAVESHAPE_TANH_DATA);
-      break;
-    case 12:
-      osc1.setTable(WAVESHAPE_SIGMOID_DATA);
-      break;
-    case 13:
-      osc1.setTable(CHEBYSHEV_5TH_256_DATA);
-      break;
-    case 14:
-      osc1.setTable(CHEBYSHEV_6TH_256_DATA);
-      break;
-    case 15:
-      osc1.setTable(WAVESHAPE1_SOFTCLIP_DATA);
-      break;
-  }
+  aSin1.setFreq_Q16n16(OP1Freq);         //给主波形设置频率、音高
+  aPha.setFreq_Q16n16(OP1Freq);          //给主波形设置频率、音高
+  aTriHermes.setFreq_Q16n16(OP1Freq);    //给主波形设置频率、音高
+  aTriValve.setFreq_Q16n16(OP1Freq);     //给主波形设置频率、音高
+  aTriDsitCub.setFreq_Q16n16(OP1Freq);   //给主波形设置频率、音高
+  aTriDsitSqu.setFreq_Q16n16(OP1Freq);   //给主波形设置频率、音高
+  aSquAnalogue.setFreq_Q16n16(OP1Freq);  //给主波形设置频率、音高
+  aSqu4.setFreq_Q16n16(OP1Freq);         //给主波形设置频率、音高
+  aSawAnalogue.setFreq_Q16n16(OP1Freq);  //给主波形设置频率、音高
+  aSaw.setFreq_Q16n16(OP1Freq);          //给主波形设置频率、音高
+  aHSinWin.setFreq_Q16n16(OP1Freq);      //给主波形设置频率、音高
+  aSigmoid.setFreq_Q16n16(OP1Freq);      //给主波形设置频率、音高
+  aTanh.setFreq_Q16n16(OP1Freq);         //给主波形设置频率、音高
+  aCheb6.setFreq_Q16n16(OP1Freq);        //给主波形设置频率、音高
+  aCheb5.setFreq_Q16n16(OP1Freq);        //给主波形设置频率、音高
+  aSoftClip.setFreq_Q16n16(OP1Freq);     //给主波形设置频率、音高
+
+  aModulator.setFreq_Q16n16(OP2Freq);
 
   /*TEST LOG*/
   // Serial.print(" a0= ");
@@ -258,10 +218,59 @@ void updateControl() {
 }
 
 AudioOutput_t updateAudio() {
-  Q15n16 modulation = OP2Amt * osc2.next() >> 8;
-  char asig = MonoOutput::from8Bit(osc1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
-
-  // if (RangeType == 0&&WaveTrig == 1) asig = MonoOutput::from8Bit(osc1.phMod(0));
+  Q15n16 modulation = OP2Amt * aModulator.next() >> 8;
+  char asig = 0;
+  switch (WaveType) {
+    default:
+      asig = MonoOutput::from8Bit(aSin1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      // if (RangeType == 0&&WaveTrig == 1) asig = MonoOutput::from8Bit(aSin1.phMod(0));
+      break;
+    case 1:
+      asig = MonoOutput::from8Bit(aPha.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 2:
+      asig = MonoOutput::from8Bit(aTriHermes.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 3:
+      asig = MonoOutput::from8Bit(aTriValve.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 4:
+      asig = MonoOutput::from8Bit(aTriDsitCub.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 5:
+      asig = MonoOutput::from8Bit(aSquAnalogue.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 6:
+      asig = MonoOutput::from8Bit(aSqu4.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 7:
+      asig = MonoOutput::from8Bit(aSawAnalogue.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 8:
+      asig = MonoOutput::from8Bit(aSaw.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 9:
+      asig = MonoOutput::from8Bit(aHSinWin.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 10:
+      asig = MonoOutput::from8Bit(aTanh.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 11:
+      asig = MonoOutput::from8Bit(aSigmoid.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 12:
+      asig = MonoOutput::from8Bit(aCheb5.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 13:
+      asig = MonoOutput::from8Bit(aCheb6.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 14:
+      asig = MonoOutput::from8Bit(aSoftClip.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+    case 15:
+      asig = MonoOutput::from8Bit(aSawAnalogue.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
+  }
 
   //波形渐变算法
   byte asigShape = (byte)128 + ((asig * ((byte)128 + ShapeSelf + ShapeMod)) >> 8);
