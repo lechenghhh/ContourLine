@@ -17,15 +17,14 @@
 #define CONTROL_RATE 128  // Hz, powers of 2 are most reliable
 #define FUNC_LENGTH 6     // menu length
 
-
-Oscil<256, AUDIO_RATE> aSin1(SIN256_DATA);
-Oscil<128, AUDIO_RATE> aLofi1(SIN256_DATA);  //SQUARE_NO_ALIAS512_NUM_CELLS
-Oscil<64, AUDIO_RATE> aLofi2(SIN256_DATA);
-Oscil<32, AUDIO_RATE> aLofi3(SIN256_DATA);
-Oscil<256, AUDIO_RATE> aPha(PHASOR256_DATA);
 Oscil<256, AUDIO_RATE> aTanh(WAVESHAPE_TANH_DATA);
-Oscil<SAW256_NUM_CELLS, AUDIO_RATE> aSaw(SAW256_DATA);
+Oscil<256, AUDIO_RATE> aSin1(SIN256_DATA);
+Oscil<169, AUDIO_RATE> aLofi2(SAW256_DATA);
+Oscil<212, AUDIO_RATE> aPha(PHASOR256_DATA);
+Oscil<197, AUDIO_RATE> aLofi3(SIN256_DATA);
 Oscil<256, AUDIO_RATE> aHSinWin(HALFSINWINDOW512_DATA);
+Oscil<SAW256_NUM_CELLS, AUDIO_RATE> aSaw(SAW256_DATA);
+Oscil<128, AUDIO_RATE> aLofi1(SIN256_DATA);  //SQUARE_NO_ALIAS512_NUM_CELLS
 
 WaveShaper<char> wsTanh(WAVESHAPE_TANH_DATA);                // 8th harmonic
 WaveShaper<int> wsComp(WAVESHAPE_COMPRESS_512_TO_488_DATA);  // to compress instead of dividing by 2 after adding signals
@@ -140,7 +139,7 @@ void updateControl() {
   // Serial.println(FMA);
   if (Shape > 30) ShapeMod = mozziAnalogRead(1);
   else ShapeMod = Shape;
-  
+
   if (getKnobEnable() == 0) digitalWrite(POSITION + 2, HIGH);  //如果处在非编辑状态 led将半灭显示
 }
 
@@ -150,7 +149,7 @@ AudioOutput_t updateAudio() {
 
   switch (WaveType) {
     default:
-      asig = MonoOutput::from8Bit(aLofi1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      asig = MonoOutput::from8Bit(aTanh.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 1:
       asig = MonoOutput::from8Bit(aSin1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
@@ -159,19 +158,19 @@ AudioOutput_t updateAudio() {
       asig = MonoOutput::from8Bit(aLofi2.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 3:
-      asig = MonoOutput::from8Bit(aLofi3.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
-      break;
-    case 4:
       asig = MonoOutput::from8Bit(aPha.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
+    case 4:
+      asig = MonoOutput::from8Bit(aLofi3.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      break;
     case 5:
-      asig = MonoOutput::from8Bit(aTanh.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      asig = MonoOutput::from8Bit(aHSinWin.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 6:
       asig = MonoOutput::from8Bit(aSaw.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 7:
-      asig = MonoOutput::from8Bit(aHSinWin.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      asig = MonoOutput::from8Bit(aLofi1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
   }
   //波形渐变算法
