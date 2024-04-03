@@ -7,9 +7,6 @@
 #include <tables/halfsinwindow512_uint8.h>  // sine table for oscillator
 #include <tables/saw256_int8.h>
 #include <tables/phasor256_int8.h>
-// #include <tables/waveshape_chebyshev_6th_256_int8.h>
-// #include <tables/waveshape_chebyshev_5th_256_int8.h>
-
 #include <tables/waveshape_tanh_int8.h>  //wt
 #include <tables/waveshape_compress_512_to_488_int16.h>
 
@@ -38,14 +35,14 @@ Oscil<256, CONTROL_RATE> kModIndex(SIN256_DATA);
 
 int voct = 500;
 byte POSITION = 0;
-char function[FUNC_LENGTH][5] = { "PTC", "rg", "WS", "ModFq", "ModLV", "WT" };
+char function[FUNC_LENGTH][3] = { "PTC", "rg", "WS", "FMF", "FMA", "WT" };
 short param[FUNC_LENGTH] = { 1, 400, 2, 3, 0 };
-// bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_S, Led_F, Led_A, Led_T };
 
 Q16n16 FMA;
 byte Wave;
 byte WaveMod = 0;
 byte WaveTrigger = 0;
+byte WaveType = 0;
 Q16n16 toneFreq, FmFreq, pitch;
 byte Shape = 0;
 byte ShapeMod = 0;
@@ -71,8 +68,8 @@ void setup() {
 void updateControl() {
   POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
-  // displayLED(ledGroup[POSITION]);                 //display  //用字母展示控制
-  for (int i = 2; i < 9; i++)  //display  //简易参数展示//无需导入led显示库
+
+  for (byte i = 2; i < 9; i++)  //display  //简易参数展示
     digitalWrite(i, HIGH);
   digitalWrite(POSITION + 2, LOW);
 
@@ -118,26 +115,19 @@ void updateControl() {
   if (digitalRead(11) != WaveTrigger && WaveTrigger == 1) {
     WaveTrigger = 0;
   }
-  // if (Wave < 7) {
-  //   if (Wave + WaveMod > 6) {  //使波表的选择循环起来
-  //     Wave = Wave + WaveMod - 6;
-  //   } else {
-  //     Wave = WaveMod + Wave;
-  //   }
-  //   if (Wave < 0) Wave = 0;
-  // }
+  WaveType = (Wave + WaveMod) % 8;
 
   // Serial.print("waveMod= ");
   // Serial.print(WaveMod);
   // Serial.print(" wave= ");
   // Serial.println(Wave);
 
-  aSin1.setFreq_Q16n16(toneFreq);     //给主波形设置频率、音高
-  aPha.setFreq_Q16n16(toneFreq);      //给主波形设置频率、音高
   aLofi1.setFreq_Q16n16(toneFreq);    //给主波形设置频率、音高
-  aTanh.setFreq_Q16n16(toneFreq);     //给主波形设置频率、音高
+  aSin1.setFreq_Q16n16(toneFreq);     //给主波形设置频率、音高
   aLofi2.setFreq_Q16n16(toneFreq);    //给主波形设置频率、音高
   aLofi3.setFreq_Q16n16(toneFreq);    //给主波形设置频率、音高
+  aPha.setFreq_Q16n16(toneFreq);      //给主波形设置频率、音高
+  aTanh.setFreq_Q16n16(toneFreq);     //给主波形设置频率、音高
   aSaw.setFreq_Q16n16(toneFreq);      //给主波形设置频率、音高
   aHSinWin.setFreq_Q16n16(toneFreq);  //给主波形设置频率、音高
 
@@ -150,6 +140,7 @@ void updateControl() {
   // Serial.println(FMA);
   if (Shape > 30) ShapeMod = mozziAnalogRead(1);
   else ShapeMod = Shape;
+  
   if (getKnobEnable() == 0) digitalWrite(POSITION + 2, HIGH);  //如果处在非编辑状态 led将半灭显示
 }
 
@@ -157,13 +148,12 @@ AudioOutput_t updateAudio() {
   Q15n16 modulation = FMA * aModulator.next() >> 8;
   char asig = 0;
 
-  switch ((Wave + WaveMod) % 8) {
-    // default:
-    case 4:
-      asig = MonoOutput::from8Bit(aSin1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+  switch (WaveType) {
+    default:
+      asig = MonoOutput::from8Bit(aLofi1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 1:
-      asig = MonoOutput::from8Bit(aLofi1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+      asig = MonoOutput::from8Bit(aSin1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 2:
       asig = MonoOutput::from8Bit(aLofi2.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
@@ -171,8 +161,7 @@ AudioOutput_t updateAudio() {
     case 3:
       asig = MonoOutput::from8Bit(aLofi3.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
-      // case 4:
-    default:
+    case 4:
       asig = MonoOutput::from8Bit(aPha.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
       break;
     case 5:
