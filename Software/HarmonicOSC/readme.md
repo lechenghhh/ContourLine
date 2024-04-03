@@ -1,4 +1,5 @@
-# 2xOP FM WaveShape DCO 
+# 功能未完成
+# DroneOsc 
 ### base on Arduino nano 328p
 #### for ContourLine 2.1  
 作者: lecheng  

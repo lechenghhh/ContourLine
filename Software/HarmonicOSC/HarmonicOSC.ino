@@ -43,11 +43,13 @@ String function[FUNC_LENGTH] = { "RootP", "N1Amp", "Note2", "N2Amp", "Note3", "N
 int param[FUNC_LENGTH] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 bool* ledGroup[FUNC_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6 };
 
-Q16n16 RangeType = 1;       //C0
+Q16n16 RangeType = 0;       //C0
 Q16n16 BaseFreq = 2143658;  //C0
 Q16n16 FreqRange = 5200;    //2OCT
 Q16n16 OP1Freq, Pitch;
-Q16n16 WaveType = 0;
+Q16n16 N1Amp = 1024;  //N1Amp
+Q16n16 N2Amp = 128;   //N2Amp
+Q16n16 N3Amp = 128;   //N3Amp
 
 void setup() {
   Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -66,27 +68,9 @@ void updateControl() {
   if (getKnobEnable() == 0) displayLED(Led_NULL);                   //如果处在非编辑状态 led将半灭显示
   Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
 
-  Pitch = param[0];           //音高旋钮参数
-  RangeType = param[1] >> 8;  //震荡范围
-  switch (RangeType) {
-    case 0:
-      BaseFreq = LFO_FREQENCY;
-      FreqRange = LFO_CV_COEFFICIENT;
-      break;
-    case 3:
-      BaseFreq = OSC_BASE3_FREQ;
-      FreqRange = OSC_VOCT_COEFFICIENT;
-      break;
-    case 2:
-      BaseFreq = OSC_BASE2_FREQ;
-      FreqRange = OSC_VOCT_COEFFICIENT;
-      break;
-    default:
-      BaseFreq = OSC_BASE1_FREQ;
-      FreqRange = OSC_VOCT_COEFFICIENT;
-      break;
-  }
-  OP1Freq = (BaseFreq + Pitch * FreqRange) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));  // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
+  Pitch = param[0];  //音高旋钮参数
+
+  OP1Freq = (BaseFreq + Pitch * FreqRange * (RangeType + 1)) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));  // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
 
   osc1.setFreq_Q16n16(OP1Freq);      //给主波形设置频率、音高
   osc2.setFreq_Q16n16(OP1Freq * 2);  //给主波形设置频率、音高
@@ -114,10 +98,9 @@ void updateControl() {
 }
 
 AudioOutput_t updateAudio() {
-  int inv_aply5 = 1;  //0 = no output root sound , 1 = output root sound
   int gain_cv_val = 511;
-  // return MonoOutput::fromNBit(16, ((osc1.next() / 8 + osc2.next() / 8 + osc3.next() / 8 + osc4.next() / 8 * inv_aply5) * gain_cv_val));
-  return MonoOutput::fromNBit(8, osc1.next());
+  return MonoOutput::fromNBit(16, ((osc1.next() / 8 + osc2.next() / 8 + osc3.next() / 8 + osc4.next() / 8) * gain_cv_val));
+  // return MonoOutput::fromNBit(8, osc1.next());
 }
 
 void loop() {
