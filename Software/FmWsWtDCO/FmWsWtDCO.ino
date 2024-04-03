@@ -5,16 +5,20 @@
 
 #include <tables/sin512_int8.h>             // table for Oscils to play
 #include <tables/halfsinwindow512_uint8.h>  // sine table for oscillator
-#include <tables/triangle_dist_squared_2048_int8.h>
+// #include <tables/triangle_dist_squared_2048_int8.h>
 #include <tables/square_no_alias512_int8.h>
 #include <tables/saw256_int8.h>
 #include <tables/waveshape_chebyshev_6th_256_int8.h>
 #include <tables/waveshape_chebyshev_5th_256_int8.h>
 
 #include <tables/phasor256_int8.h>
-#include <tables/triangle_dist_cubed_2048_int8.h>
-#include <tables/triangle_hermes_2048_int8.h>
-#include <tables/triangle_valve_2_2048_int8.h>
+#include <tables/uphasor256_uint8.h>
+#include <tables/halfsin256_uint8.h>
+#include <tables/cos256_int8.h>
+#include <tables/cosphase256_int8.h>
+// #include <tables/triangle_dist_cubed_2048_int8.h>
+// #include <tables/triangle_hermes_2048_int8.h>
+// #include <tables/triangle_valve_2_2048_int8.h>
 #include <tables/square_analogue512_int8.h>
 #include <tables/waveshape1_softclip_int8.h>
 #include <tables/waveshape_sigmoid_int8.h>
@@ -54,22 +58,8 @@
 #define BTN1_PIN 12  //
 #define BTN2_PIN 13  //
 
-Oscil<PHASOR256_NUM_CELLS, AUDIO_RATE> aPha(PHASOR256_DATA);
-Oscil<TRIANGLE_HERMES_2048_NUM_CELLS, AUDIO_RATE> aTriHermes(TRIANGLE_HERMES_2048_DATA);
-Oscil<TRIANGLE_VALVE_2_2048_NUM_CELLS, AUDIO_RATE> aTriValve(TRIANGLE_VALVE_2_2048_DATA);
-Oscil<TRIANGLE_DIST_CUBED_2048_NUM_CELLS, AUDIO_RATE> aTriDsitCub(TRIANGLE_DIST_CUBED_2048_DATA);
-Oscil<TRIANGLE_DIST_SQUARED_2048_NUM_CELLS, AUDIO_RATE> aTriDsitSqu(TRIANGLE_DIST_SQUARED_2048_DATA);
-Oscil<SQUARE_ANALOGUE512_NUM_CELLS, AUDIO_RATE> aSquAnalogue(SQUARE_ANALOGUE512_DATA);
-Oscil<SQUARE_NO_ALIAS512_NUM_CELLS, AUDIO_RATE> aSqu4(SQUARE_NO_ALIAS512_DATA);  //SQUARE_NO_ALIAS512_NUM_CELLS
-
-Oscil<SAW_ANALOGUE512_NUM_CELLS, AUDIO_RATE> aSawAnalogue(SAW_ANALOGUE512_DATA);
-Oscil<SAW256_NUM_CELLS, AUDIO_RATE> aSaw(SAW256_DATA);
-Oscil<HALFSINWINDOW512_NUM_CELLS, AUDIO_RATE> aHSinWin(HALFSINWINDOW512_DATA);
-Oscil<WAVESHAPE_TANH_NUM_CELLS, AUDIO_RATE> aTanh(WAVESHAPE_TANH_DATA);
-Oscil<WAVESHAPE_SIGMOID_NUM_CELLS, AUDIO_RATE> aSigmoid(WAVESHAPE_SIGMOID_DATA);
-Oscil<CHEBYSHEV_5TH_256_NUM_CELLS, AUDIO_RATE> aCheb5(CHEBYSHEV_5TH_256_DATA);
-Oscil<CHEBYSHEV_6TH_256_NUM_CELLS, AUDIO_RATE> aCheb6(CHEBYSHEV_6TH_256_DATA);
-Oscil<WAVESHAPE1_SOFTCLIP_NUM_CELLS, AUDIO_RATE> aSoftClip(WAVESHAPE1_SOFTCLIP_DATA);
+Oscil<SIN512_NUM_CELLS, AUDIO_RATE> osc1(SIN512_DATA);
+Oscil<256, AUDIO_RATE> osc2(SIN512_DATA);
 
 WaveShaper<char> wsTanh(WAVESHAPE_TANH_DATA);                // WaveShaper
 WaveShaper<char> wsSigmod(WAVESHAPE_SIGMOID_DATA);           // WaveShaper
@@ -80,9 +70,6 @@ WaveShaper<char> wsCH4th(CHEBYSHEV_4TH_256_DATA);            // WaveShaper
 WaveShaper<char> wsCH5th(CHEBYSHEV_5TH_256_DATA);            // WaveShaper
 WaveShaper<char> wsCH6th(CHEBYSHEV_6TH_256_DATA);            // WaveShaper
 WaveShaper<int> wsComp(WAVESHAPE_COMPRESS_512_TO_488_DATA);  // to compress instead of dividing by 2 after adding signals
-
-Oscil<SIN512_NUM_CELLS, AUDIO_RATE> osc1(SIN512_DATA);
-Oscil<256, AUDIO_RATE> osc2(SIN512_DATA);
 
 Q16n16 POSITION = 0;
 String function[FUNC_LENGTH] = { "Pitch", "Range", "ShapeG", "WaveS", "OPFreq", "OPAmt", "WaveT", "WaveC" };
@@ -109,9 +96,7 @@ void setup() {
   startMozzi(CONTROL_RATE);
 }
 
-//三个旋钮 Carrier A0  ModFreq A1  ModLV A3    C
 void updateControl() {
-
   /*控制参数获取与显示逻辑*/
   POSITION = getPostition(POSITION, FUNC_LENGTH);                   //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);                      //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
@@ -155,7 +140,6 @@ void updateControl() {
 
   Q16n16 WaveSelect = param[6] >> 6;  //波表  将1023分成16个波表类型
   Q16n16 WaveChange = param[7] >> 6;  //偏移量为16
-  // Q16n16 WaveChangeRandom = (param[8] >> 6);
   //波形切换触发器
   if (digitalRead(GATE_PIN) != WaveTrig && WaveTrig == 0) {  //d13按钮可以用来测试
     WaveTrig = 1;
@@ -178,49 +162,49 @@ void updateControl() {
       osc1.setTable(SIN512_DATA);
       break;
     case 1:
-      osc1.setTable(PHASOR256_DATA);
-      break;
-    case 2:
-      osc1.setTable(TRIANGLE_HERMES_2048_DATA);
-      break;
-    case 3:
-      osc1.setTable(TRIANGLE_VALVE_2_2048_DATA);
-      break;
-    case 4:
-      osc1.setTable(TRIANGLE_DIST_CUBED_2048_DATA);
-      break;
-    case 5:
-      osc1.setTable(TRIANGLE_DIST_SQUARED_2048_DATA);
-      break;
-    case 6:
-      osc1.setTable(SQUARE_ANALOGUE512_DATA);
-      break;
-    case 7:
-      osc1.setTable(SQUARE_NO_ALIAS512_DATA);
-      break;
-    case 8: 
-      osc1.setTable(SAW_ANALOGUE512_DATA);
-      break;
-    case 9:
-      osc1.setTable(SAW256_DATA);
-      break;
-    case 10:
-      osc1.setTable(HALFSINWINDOW512_DATA);
-      break;
-    case 11:
       osc1.setTable(WAVESHAPE_TANH_DATA);
       break;
-    case 12:
+    case 2:  //2345
+      osc1.setTable(SQUARE_ANALOGUE512_DATA);
+      break;
+    case 3:
+      osc1.setTable(WAVESHAPE1_SOFTCLIP_DATA);
+      break;
+    case 4:
       osc1.setTable(WAVESHAPE_SIGMOID_DATA);
       break;
-    case 13:
+    case 5:
+      osc1.setTable(SQUARE_NO_ALIAS512_DATA);
+      break;
+    case 6:
+      osc1.setTable(SAW256_DATA);
+      break;
+    case 7:
+      osc1.setTable(SAW_ANALOGUE512_DATA);
+      break;
+    case 8:
+      osc1.setTable(HALFSINWINDOW512_DATA);
+      break;
+    case 9:
       osc1.setTable(CHEBYSHEV_5TH_256_DATA);
       break;
+    case 10:
+      osc1.setTable(PHASOR256_DATA);
+      break;
+    case 11:
+      osc1.setTable(UPHASOR256_DATA);
+      break;
+    case 12:
+      osc1.setTable(HALFSIN256_DATA);
+      break;
+    case 13:
+      osc1.setTable(COSPHASE256_DATA);
+      break;
     case 14:
-      osc1.setTable(CHEBYSHEV_6TH_256_DATA);
+      osc1.setTable(COS256_DATA);
       break;
     case 15:
-      osc1.setTable(WAVESHAPE1_SOFTCLIP_DATA);
+      osc1.setTable(CHEBYSHEV_6TH_256_DATA);
       break;
   }
 
@@ -249,8 +233,8 @@ void updateControl() {
   // Serial.print(digitalRead(11));
   // Serial.print("-WaveTrig= ");
   // Serial.print(WaveTrig);
-  // Serial.print(" WaveType= ");
-  // Serial.print(WaveType);
+  Serial.print(WaveType);
+  Serial.print(" WaveType= ");
   // Serial.print("-WaveChange= ");
   // Serial.println(WaveChange);
   // Serial.print("-ShapeGradient-");
