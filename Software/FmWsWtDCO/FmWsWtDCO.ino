@@ -205,14 +205,14 @@ void updateControl() {
   // Serial.print(OP2Freq);
   // Serial.print("-OP2Amt-");
   // Serial.println(OP2Amt);
-  Serial.print(" d11= ");
-  Serial.print(digitalRead(11));
-  Serial.print("-WaveTrig= ");
-  Serial.print(WaveTrig);
-  Serial.print(" WaveType= ");
-  Serial.print(WaveType);
-  Serial.print("-WaveChange= ");
-  Serial.println(WaveChange);
+  // Serial.print(" d11= ");
+  // Serial.print(digitalRead(11));
+  // Serial.print("-WaveTrig= ");
+  // Serial.print(WaveTrig);
+  // Serial.print(" WaveType= ");
+  // Serial.print(WaveType);
+  // Serial.print("-WaveChange= ");
+  // Serial.println(WaveChange);
   // Serial.print("-ShapeGradient-");
   // Serial.println(ShapeGradient);
 }
