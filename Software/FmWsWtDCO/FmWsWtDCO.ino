@@ -233,8 +233,8 @@ void updateControl() {
   // Serial.print(digitalRead(11));
   // Serial.print("-WaveTrig= ");
   // Serial.print(WaveTrig);
-  Serial.print(WaveType);
-  Serial.print(" WaveType= ");
+  // Serial.print(WaveType);
+  // Serial.print(" WaveType= ");
   // Serial.print("-WaveChange= ");
   // Serial.println(WaveChange);
   // Serial.print("-ShapeGradient-");

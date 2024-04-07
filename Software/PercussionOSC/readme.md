@@ -1,8 +1,20 @@
-# 功能未完成
+# 打击乐振荡器
+### 可以通过四个触发输入接口来实现打击乐的输出
 # Perc oscillator
 ### base on Arduino nano 328p/168p
 #### for ContourLine 2.1  
 作者: lecheng  
+
+
+### 音频接口:  
+
+0.      a0:Param                a1:Kick Trig  
+1.      a2:Clap Trig            a3:Tom Trig  
+2.      d11:Hat Trig            d9d10:AudioOut    
+
+### 显示参数:  
+
+
 
  0.         8位数码管显示字母        参数名词EN                   参数名词CN                    参数说明
  1.         K                       Kick                        底鼓音量                      

@@ -3,6 +3,14 @@
 #### for ContourLine 2.1  
 作者: lecheng  
 
+### 音频接口:  
+
+0.          a0:Voct             a1:Shaper  
+1.          a2:FMFreq           a3:FMAmt  
+2.          d11:WaveTrig        d9d10:AudioOut    
+
+### 显示参数:  
+
  0.         8位数码管显示字母        参数名词EN                   参数名词CN                    参数说明
  1.         P                       Pitch                       音高调节                      C1-A2
  2.         R                       Range                       震荡范围                      调整振荡器的震荡范围 4种模式 0.1-10hz 30hz-150hz 60hz-300hz 120-600hz
