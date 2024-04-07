@@ -37,7 +37,7 @@
 
 Q16n16 POSITION = 0;
 String function[FUNC_LENGTH] = { "kick", "pitch", "clap", "freq", "tom", "pitch", "hat", "decay" };
-int param[FUNC_LENGTH] = { 0, 1024, 0, 768, 0, 512, 0, 128 };
+int param[FUNC_LENGTH] = { 0, 1024, 0, 700, 0, 512, 0, 512 };
 bool* ledGroup[FUNC_LENGTH] = { Led_K, Led_P, Led_C, Led_F, Led_T, Led_P, Led_H, Led_D };
 
 //kick
@@ -112,13 +112,13 @@ void kick() {
 
   env1.setADLevels(255, 255);
   env1.setTimes(0, 16, 0, 2);
-  if (mozziAnalogRead(2) > 100 && trg1 == 0) {
+  if (mozziAnalogRead(1) > 100 && trg1 == 0) {
     trg1 = 1;
     fall1 = 30;
     env1.noteOn();
     env1.noteOff();
   }
-  if (mozziAnalogRead(2) < 101 && trg1 == 1) {
+  if (mozziAnalogRead(1) < 101 && trg1 == 1) {
     trg1 = 0;
   }
   env1.update();
@@ -136,14 +136,14 @@ void clap() {
   lpf2.setResonance(256);
 
   env2.setADLevels(255, 255);
-  env2.setTimes(0, 16, 0, 2);
+  env2.setTimes(0, 8, 0, 1);
   if (mozziAnalogRead(2) > 100 && trg2 == 0) {
     trg2 = 1;
     env2.noteOn();
+    env2.noteOff();
   }
   if (mozziAnalogRead(2) < 101 && trg2 == 1) {
     trg2 = 0;
-    env2.noteOff();
   }
   env2.update();
 
@@ -179,11 +179,11 @@ void tom() {
 }
 
 void hat() {
-  int hihatfreq = 400;
+  int hihatfreq = 800;
   // int hihatfreq = mozziAnalogRead(4) << 4;
 
   env4.setADLevels(255, 255);
-  env4.setTimes(0, param[7] >> 6, 0, 2);
+  env4.setTimes(0, 128 + param[7] >> 5, 0, param[7] >> 7);
   if (digitalRead(11) == 0 && trg4 == 0) {
     trg4 = 1;
     env4.noteOn();
@@ -200,12 +200,6 @@ void hat() {
 }
 
 AudioOutput_t updateAudio() {
-  // int gain_cv_val = 255;
-  // int asig1 = osc1.next() * N0Amp >> 10;
-  // int asig2 = osc2.next() * N1Amp >> 10;
-  // int asig3 = osc3.next() * N2Amp >> 10;
-  // int asig4 = osc4.next() * N3Amp >> 10;
-
   //kick
   int asig1 = gain1 * (osc1.next()) >> 8;
   //clap
