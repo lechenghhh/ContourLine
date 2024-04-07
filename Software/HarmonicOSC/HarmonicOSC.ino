@@ -37,19 +37,26 @@ Oscil<SIN512_NUM_CELLS, AUDIO_RATE> osc4(SIN512_DATA);
 
 WaveShaper<int> wsComp(WAVESHAPE_COMPRESS_512_TO_488_DATA);  // to compress instead of dividing by 2 after adding signals
 
-
 Q16n16 POSITION = 0;
-String function[FUNC_LENGTH] = { "RootP", "N1Amp", "Note2", "N2Amp", "Note3", "N3Amp" };
-int param[FUNC_LENGTH] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6 };
+String function[FUNC_LENGTH] = { "RootP", "N0Amp", "N1ITV", "N1Amp", "N2ITV", "N2Amp", "N3ITV", "N3Amp" };
+int param[FUNC_LENGTH] = { 0, 1024, 0, 128, 0, 128, 0, 128 };
+bool* ledGroup[FUNC_LENGTH] = { Led_0, Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7 };
 
 Q16n16 RangeType = 0;       //C0
 Q16n16 BaseFreq = 2143658;  //C0
 Q16n16 FreqRange = 5200;    //2OCT
+Q16n16 N0Amp = 0;           //N1Amp
+Q16n16 N1Amp = 0;           //N1Amp
+Q16n16 N2Amp = 0;           //N2Amp
+Q16n16 N3Amp = 0;           //N3Amp
+byte N1ITV = 0;             //音程关系
+byte N2ITV = 0;             //音程关系
+byte N3ITV = 0;             //音程关系
 Q16n16 OP1Freq, Pitch;
-Q16n16 N1Amp = 1024;  //N1Amp
-Q16n16 N2Amp = 128;   //N2Amp
-Q16n16 N3Amp = 128;   //N3Amp
+Q16n16 OP2Freq;
+Q16n16 OP3Freq;
+Q16n16 OP4Freq;
+
 
 void setup() {
   Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -70,12 +77,27 @@ void updateControl() {
 
   Pitch = param[0];  //音高旋钮参数
 
-  OP1Freq = (BaseFreq + Pitch * FreqRange * (RangeType + 1)) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));  // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
+  N0Amp = param[1];
+  N1Amp = param[3];
+  N2Amp = param[5];
+  N3Amp = param[7];
 
-  osc1.setFreq_Q16n16(OP1Freq);      //给主波形设置频率、音高
-  osc2.setFreq_Q16n16(OP1Freq * 2);  //给主波形设置频率、音高
-  osc3.setFreq_Q16n16(OP1Freq * 3);  //给主波形设置频率、音高
-  osc4.setFreq_Q16n16(OP1Freq * 4);  //给主波形设置频率、音高
+  N1ITV = param[2] >> 6;       //音程关系
+  N2ITV = param[4] >> 6 + 12;  //音程关系
+  N3ITV = param[6] >> 6 + 24;  //音程关系
+  // N1ITV = param[2];  //音程关系
+  // N2ITV = param[4];  //音程关系
+  // N3ITV = param[6];  //音程关系
+
+  OP1Freq = (BaseFreq + Pitch * FreqRange * (RangeType + 1)) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));                   // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
+  OP2Freq = (BaseFreq + (Pitch + (N1ITV << 6)) * FreqRange * (RangeType + 1)) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));  // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
+  OP3Freq = (BaseFreq + (Pitch + (N2ITV << 6)) * FreqRange * (RangeType + 1)) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));  // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
+  OP4Freq = (BaseFreq + (Pitch + (N3ITV << 6)) * FreqRange * (RangeType + 1)) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));  // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
+
+  osc1.setFreq_Q16n16(OP1Freq);  //给主波形设置频率、音高
+  osc2.setFreq_Q16n16(OP2Freq);  //给主波形设置频率、音高
+  osc3.setFreq_Q16n16(OP3Freq);  //给主波形设置频率、音高
+  osc4.setFreq_Q16n16(OP4Freq);  //给主波形设置频率、音高
 
   /*TEST LOG*/
   // Serial.print(" a0= ");
@@ -98,9 +120,13 @@ void updateControl() {
 }
 
 AudioOutput_t updateAudio() {
-  int gain_cv_val = 511;
-  return MonoOutput::fromNBit(16, ((osc1.next() / 8 + osc2.next() / 8 + osc3.next() / 8 + osc4.next() / 8) * gain_cv_val));
-  // return MonoOutput::fromNBit(8, osc1.next());
+  int gain_cv_val = 255;
+  int asig1 = osc1.next() * N0Amp >> 10;
+  int asig2 = osc2.next() * N1Amp >> 10;
+  int asig3 = osc3.next() * N2Amp >> 10;
+  int asig4 = osc4.next() * N3Amp >> 10;
+
+  return MonoOutput::fromNBit(8, (asig1 + asig2 + asig3 + asig4));
 }
 
 void loop() {
