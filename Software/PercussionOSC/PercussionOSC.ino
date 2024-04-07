@@ -44,7 +44,7 @@ bool* ledGroup[FUNC_LENGTH] = { Led_K, Led_P, Led_C, Led_F, Led_T, Led_P, Led_H,
 Oscil<TRIANGLE512_NUM_CELLS, AUDIO_RATE> osc1(TRIANGLE512_DATA);
 ADSR<AUDIO_RATE, AUDIO_RATE> env1;
 int gain1;
-int tfg1 = 0;
+int trg1 = 0;
 int fall1 = 0;
 //clap
 Oscil<WHITENOISE8192_NUM_CELLS, AUDIO_RATE> osc2(WHITENOISE8192_DATA);  // audio noise
@@ -112,14 +112,14 @@ void kick() {
 
   env1.setADLevels(255, 255);
   env1.setTimes(0, 16, 0, 2);
-  if (digitalRead(12) == 0 && tfg1 == 0) {
-    tfg1 = 1;
+  if (mozziAnalogRead(2) > 100 && trg1 == 0) {
+    trg1 = 1;
     fall1 = 30;
     env1.noteOn();
     env1.noteOff();
   }
-  if (digitalRead(12) == 1 && tfg1 == 1) {
-    tfg1 = 0;
+  if (mozziAnalogRead(2) < 101 && trg1 == 1) {
+    trg1 = 0;
   }
   env1.update();
   gain1 = env1.next();
@@ -137,11 +137,11 @@ void clap() {
 
   env2.setADLevels(255, 255);
   env2.setTimes(0, 16, 0, 2);
-  if (digitalRead(12) == 0 && trg2 == 0) {
+  if (mozziAnalogRead(2) > 100 && trg2 == 0) {
     trg2 = 1;
     env2.noteOn();
   }
-  if (digitalRead(12) == 1 && trg2 == 1) {
+  if (mozziAnalogRead(2) < 101 && trg2 == 1) {
     trg2 = 0;
     env2.noteOff();
   }
@@ -158,13 +158,13 @@ void tom() {
 
   env3.setADLevels(255, 255);
   env3.setTimes(0, 16, 0, 2);
-  if (digitalRead(12) == 0 && trg3 == 0) {
+  if (mozziAnalogRead(3) > 100 && trg3 == 0) {
     trg3 = 1;
     fall3 = 30;
     env3.noteOn();
     env3.noteOff();
   }
-  if (digitalRead(12) == 1 && trg3 == 1) {
+  if (mozziAnalogRead(3) < 101 && trg3 == 1) {
     trg3 = 0;
   }
   env3.update();
@@ -179,17 +179,17 @@ void tom() {
 }
 
 void hat() {
-  int hihatfreq = param[7] << 4;
+  int hihatfreq = 400;
   // int hihatfreq = mozziAnalogRead(4) << 4;
 
   env4.setADLevels(255, 255);
-  env4.setTimes(0, 8, 0, 2);
-  if (digitalRead(12) == 0 && trg4 == 0) {
+  env4.setTimes(0, param[7] >> 6, 0, 2);
+  if (digitalRead(11) == 0 && trg4 == 0) {
     trg4 = 1;
     env4.noteOn();
     env4.noteOff();
   }
-  if (digitalRead(12) == 1 && trg4 == 1) {
+  if (digitalRead(11) == 1 && trg4 == 1) {
     trg4 = 0;
   }
   env4.update();
