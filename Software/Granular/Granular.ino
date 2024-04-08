@@ -39,6 +39,10 @@
 #include <samples/bamboo/bamboo_10_2048_int8.h>  // wavetable data
 #include <ReverbTank.h>
 
+//lecheng的控制/显示模块封装
+// #include "Module_LEDDisplay.h"
+#include "Module_Ctrl.h"
+#include "Module_Const.h"
 // for scheduling samples to play
 EventDelay kTriggerDelay;
 EventDelay kTriggerSlowDelay;
@@ -48,6 +52,17 @@ byte ms_per_note = 111;  // subject to CONTROL_RATE
 
 const byte NUM_PLAYERS = 3;  // 3 seems to be enough
 const byte NUM_TABLES = 11;
+#define FUNC_LENGTH 4  //功能列表长度
+
+/*   引脚定义   */
+#define KONB_PIN 4   //
+#define VOCT_PIN 0   //
+#define CV1_PIN 1    //
+#define CV2_PIN 2    //
+#define CV3_PIN 3    //
+#define GATE_PIN 11  //
+#define BTN1_PIN 12  //
+#define BTN2_PIN 13  //
 
 Sample<BAMBOO_00_2048_NUM_CELLS, AUDIO_RATE> aSample[NUM_PLAYERS] = {
   Sample<BAMBOO_00_2048_NUM_CELLS, AUDIO_RATE>(BAMBOO_00_2048_DATA),
@@ -67,14 +82,19 @@ const int8_t* tables[NUM_TABLES] = {
   BAMBOO_07_2048_DATA,
   BAMBOO_08_2048_DATA,
   BAMBOO_09_2048_DATA,
-  BAMBOO_10_2048_DATA
+  BAMBOO_06_2048_DATA
 };
 
 // gains for each sample player
 byte gains[NUM_PLAYERS];
 
+Q16n16 POSITION = 0;
+String function[FUNC_LENGTH] = { "freq", "dens", "seed", "rvb" };
+int param[FUNC_LENGTH] = { 64, 100, 320, 0 };
+// bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_D, Led_S, Led_R};
+
 void setup() {
-  Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
+  Serial.begin(115200);
   pinMode(2, OUTPUT);
   pinMode(3, OUTPUT);
   pinMode(4, OUTPUT);
@@ -82,28 +102,38 @@ void setup() {
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
   pinMode(8, OUTPUT);
+  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
+  initCtrl(KONB_PIN, 16, BTN2_PIN, BTN1_PIN, HIGH);  //初始化控制参数// 旋钮 旋钮编辑状态启动范围 按钮1 按钮2
+  // initLED(2, 3, 4, 5, 6, 7, 8);                      //初始化Led引脚
+
   startMozzi();
 }
 
 void updateControl() {
-  for (byte i = 2; i < 9; i++)  //display  //简易参数展示
-    digitalWrite(i, HIGH);
-  digitalWrite(1 + 2, LOW);
-  Serial.println("1111");              //func param Log
-  Serial.println(mozziAnalogRead(4));  //func param Log
 
-  ms_per_note = mozziAnalogRead(4);
+  POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
+  param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
+  // for (byte i = 2; i < 9; i++)  //display  //简易参数展示
+  //   digitalWrite(i, HIGH);
+  // digitalWrite(POSITION + 2, LOW);
+  // Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
+  Serial.print("POSITION");         //func param Log
+  Serial.println(POSITION);         //func param Log
+  Serial.println(param[POSITION]);  //func param Log
+
+  ms_per_note = param[1];
   kTriggerDelay.set(ms_per_note);          // countdown ms, within resolution of CONTROL_RATE倒计时ms，在CONTROL_RATE的分辨率范围内
   kTriggerSlowDelay.set(ms_per_note * 6);  // resolution-dependent inaccuracy leads to polyrhythm :)分辨率相关的不准确性导致多节律
   for (int i = 0; i < NUM_PLAYERS; i++) {  // play at the speed they're sampled at
-    (aSample[i]).setFreq(32);
+    // (aSample[i]).setFreq(32);
     // (aSample[i]).setFreq((mozziAnalogRead(4) >> 4) + 6);
+    (aSample[i]).setFreq((param[0] >> 4) + 6);
     // (aSample[i]).setFreq((float) BAMBOO_00_2048_SAMPLERATE / (float) BAMBOO_00_2048_NUM_CELLS);
   }
   static byte player = 0;
 
   if (kTriggerDelay.ready()) {
-    gains[player] = rand((byte)80, (byte)255);
+    gains[player] = rand((byte)(param[2] >> 2), (byte)255);
     (aSample[player]).setTable(tables[rand(NUM_TABLES)]);
     (aSample[player]).start();
     player++;
@@ -112,7 +142,7 @@ void updateControl() {
   }
 
   if (kTriggerSlowDelay.ready()) {
-    gains[player] = rand((byte)80, (byte)255);
+    gains[player] = rand((byte)(param[2] >> 8), (byte)255);
     (aSample[player]).setTable(tables[rand(NUM_TABLES)]);
     (aSample[player]).start();
     player++;
@@ -122,14 +152,19 @@ void updateControl() {
 }
 
 AudioOutput_t updateAudio() {
-  long asig = 0;
+  long dry = 0;
   for (byte i = 0; i < NUM_PLAYERS; i++) {
-    asig += (int)(aSample[i]).next() * gains[i];
+    dry += (int)(aSample[i]).next() * gains[i];
   }
-  int arev = reverb.next(asig);
+  int wet = reverb.next(dry);
 
-  //clip any stray peaks to max output range
-  return MonoOutput::fromAlmostNBit(15, arev).clip();
+  int dryGain = (1023 - param[3]) >> 2;
+  int wetGain = param[3] >> 2;
+  int dry2 = dryGain * dry >> 8;
+  int wet2 = wetGain * wet >> 8;
+  // return MonoOutput::fromAlmostNBit(15, dry).clip();  //dry
+  return MonoOutput::fromAlmostNBit(15, wet).clip();  //wet
+  // return MonoOutput::fromAlmostNBit(15, (dry2 + wet2) >> 1).clip();  //wet
 }
 
 void loop() {
