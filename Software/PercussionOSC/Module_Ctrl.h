@@ -96,7 +96,7 @@ int getPostition(int position, int functionLength) {
     btnHover2 = 0;
     btnTime2 = 0;
     knobEnable = 0;
-    Serial.println(knobEnable);  //btn2
+    // Serial.println(knobEnable);  //btn2
   }
   return position;
 }

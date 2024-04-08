@@ -31,12 +31,13 @@
 
 Q16n16 POSITION = 0;
 String function[FUNC_LENGTH] = { "kick", "tone", "clap", "freq", "hat", "decay", "rim", "pitch" };
-int param[FUNC_LENGTH] = { 0, 1024, 0, 700, 0, 256, 0, 512 };
+int param[FUNC_LENGTH] = { 768, 1024, 768, 700, 768, 256, 768, 512 };
 bool* ledGroup[FUNC_LENGTH] = { Led_K, Led_T, Led_C, Led_F, Led_H, Led_D, Led_R, Led_P };
 
 //kick
 Oscil<TRIANGLE512_NUM_CELLS, AUDIO_RATE> osc1(TRIANGLE512_DATA);
 ADSR<AUDIO_RATE, AUDIO_RATE> env1;
+int adsr1;
 int gain1;
 int trg1 = 0;
 int fall1 = 0;
@@ -44,11 +45,13 @@ int fall1 = 0;
 Oscil<WHITENOISE8192_NUM_CELLS, AUDIO_RATE> osc2(WHITENOISE8192_DATA);  // audio noise
 ADSR<AUDIO_RATE, AUDIO_RATE> env2;
 LowPassFilter lpf2;
+int adsr2;
 int gain2;
 int trg2 = 0;
 //hat
 Oscil<244, AUDIO_RATE> osc3(WHITENOISE8192_DATA);
 ADSR<AUDIO_RATE, AUDIO_RATE> env3;
+int adsr3;
 int gain3;
 int trg3 = 0;
 //rim
@@ -56,6 +59,7 @@ Oscil<181, AUDIO_RATE> osc4(TRIANGLE512_DATA);
 Oscil<103, AUDIO_RATE> osc5(TRIANGLE512_DATA);
 Oscil<103, AUDIO_RATE> osc6(TRIANGLE512_DATA);
 ADSR<AUDIO_RATE, AUDIO_RATE> env4;
+int adsr4;
 int gain4;
 int trg4 = 0;
 
@@ -100,6 +104,7 @@ void updateControl() {
 }
 
 void kick() {
+  gain1 = param[0] >> 2;
   // int kickfreq = mozziAnalogRead(4) >> 4;
   int kickfreq = (param[1] >> 4) + mozziAnalogRead(0) / 8;
 
@@ -115,13 +120,14 @@ void kick() {
     trg1 = 0;
   }
   env1.update();
-  gain1 = env1.next();
+  adsr1 = env1.next();
 
   osc1.setFreq(kickfreq + fall1);
   fall1 -= 3;
 }
 
 void clap() {
+  gain2 = param[2] >> 2;
   osc2.setFreq((float)AUDIO_RATE / WHITENOISE8192_SAMPLERATE);
   int clapfreq = param[3] << 2;
   lpf2.setCutoffFreq(clapfreq + mozziAnalogRead(0) / 4);
@@ -140,12 +146,13 @@ void clap() {
   }
   env2.update();
 
-  gain2 = env2.next();
-  // for (int i = 0; i < gain2 / 2; i++)
+  adsr2 = env2.next();
+  // for (int i = 0; i < adsr2 / 2; i++)
   //   Serial.print("]");
 }
 
 void hat() {
+  gain3 = param[4] >> 2;
   int hatFreq = 8000 + (mozziAnalogRead(0) << 3);
   // int hatFreq = 64 + mozziAnalogRead(4) >> 4;
 
@@ -154,23 +161,25 @@ void hat() {
 
   env3.setADLevels(255, 255);
   env3.setTimes(0, 72 + (param[5] >> 5), 0, param[5] >> 7);
-  if (digitalRead(13) == 0 && trg3 == 0) {
-    // if (mozziAnalogRead(3) > 500 && trg3 == 0) {
+  // if (digitalRead(13) == 0 && trg3 == 0) {//test
+  if (mozziAnalogRead(3) > 500 && trg3 == 0) {
     trg3 = 1;
     env3.noteOn();
     env3.noteOff();
   }
-  if (digitalRead(13) == 1 && trg3 == 1) {
-    // if (mozziAnalogRead(3) < 501 && trg3 == 1) {
+  // if (digitalRead(13) == 1 && trg3 == 1) {//test
+  if (mozziAnalogRead(3) < 501 && trg3 == 1) {
     trg3 = 0;
   }
   env3.update();
-  gain3 = env3.next();
+  adsr3 = env3.next();
   // for (int i = 0; i < fall3; i++)
   //   Serial.print("]");
 }
 
 void rim() {
+  gain4 = param[6] >> 2;
+
   int hirimfreq = param[7] << 4;
 
   env4.setADLevels(255, 255);
@@ -184,21 +193,26 @@ void rim() {
     trg4 = 0;
   }
   env4.update();
-  gain4 = env4.next();
+  adsr4 = env4.next();
 
   osc4.setFreq(hirimfreq);
   osc5.setFreq(mozziAnalogRead(0) + 5500);
 }
 
 AudioOutput_t updateAudio() {
+
   //kick
-  int asig1 = gain1 * (osc1.next()) >> 8;
+  int asig1 = adsr1 * (osc1.next()) >> 8;
   //clap
-  int asig2 = gain2 * lpf2.next(osc2.next()) >> 8;
+  int asig2 = adsr2 * lpf2.next(osc2.next()) >> 8;
   //hat
-  int asig3 = gain3 * (osc3.phMod(12000 * osc6.next() >> 8)) >> 8;
+  int asig3 = adsr3 * (osc3.phMod(12000 * osc6.next() >> 8)) >> 8;
   //rim
-  int asig4 = gain4 * (osc4.phMod(600 * osc5.next() >> 8)) >> 8;
+  int asig4 = adsr4 * (osc4.phMod(600 * osc5.next() >> 8)) >> 8;
+  asig1 = gain1 * asig1 >> 8;
+  asig2 = gain2 * asig2 >> 8;
+  asig3 = gain3 * asig3 >> 8;
+  asig4 = gain4 * asig4 >> 8;
 
   return MonoOutput::fromNBit(8, (asig1 + asig2 + asig3 + asig4));
 }
