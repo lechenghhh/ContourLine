@@ -2,13 +2,12 @@
 #include <Oscil.h>
 #include <WaveShaper.h>
 #include <mozzi_fixmath.h>
-#include <tables/whitenoise8192_int8.h>
 #include <ADSR.h>
 #include <LowPassFilter.h>
+#include <tables/whitenoise8192_int8.h>
 #include <tables/triangle512_int8.h>
 #include <tables/square_no_alias512_int8.h>
 #include <tables/triangle512_int8.h>
-
 #include <tables/waveshape_compress_512_to_488_int16.h>  //wt compress
 #include <tables/whitenoise8192_int8.h>
 
@@ -17,14 +16,9 @@
 #include "Module_Ctrl.h"
 #include "Module_Const.h"
 
-#define CONTROL_RATE 256           //Hz, powers of 2 are most reliable
-#define FUNC_LENGTH 8              //功能列表长度
-#define OSC_BASE1_FREQ 2143658     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
-#define OSC_BASE2_FREQ 4287316     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
-#define OSC_BASE3_FREQ 8574632     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
-#define OSC_VOCT_COEFFICIENT 5200  //振荡器可调范围 5200-两个八度
-#define LFO_FREQENCY 2143          //振荡器基础频率 0.1hz-4hz
-#define LFO_CV_COEFFICIENT 1000    //振荡器可调范围
+#define CONTROL_RATE 256  //Hz, powers of 2 are most reliable
+#define FUNC_LENGTH 8     //功能列表长度
+
 /*   引脚定义   */
 #define KONB_PIN 4   //
 #define VOCT_PIN 0   //
@@ -36,9 +30,9 @@
 #define BTN2_PIN 13  //
 
 Q16n16 POSITION = 0;
-String function[FUNC_LENGTH] = { "kick", "pitch", "clap", "freq", "tom", "pitch", "hat", "decay" };
-int param[FUNC_LENGTH] = { 0, 1024, 0, 700, 0, 512, 0, 512 };
-bool* ledGroup[FUNC_LENGTH] = { Led_K, Led_P, Led_C, Led_F, Led_T, Led_P, Led_H, Led_D };
+String function[FUNC_LENGTH] = { "kick", "tone", "clap", "freq", "hat", "decay", "rim", "pitch" };
+int param[FUNC_LENGTH] = { 0, 1024, 0, 700, 0, 256, 0, 512 };
+bool* ledGroup[FUNC_LENGTH] = { Led_K, Led_T, Led_C, Led_F, Led_H, Led_D, Led_R, Led_P };
 
 //kick
 Oscil<TRIANGLE512_NUM_CELLS, AUDIO_RATE> osc1(TRIANGLE512_DATA);
@@ -52,22 +46,22 @@ ADSR<AUDIO_RATE, AUDIO_RATE> env2;
 LowPassFilter lpf2;
 int gain2;
 int trg2 = 0;
-//tom
-Oscil<SQUARE_NO_ALIAS512_NUM_CELLS, AUDIO_RATE> osc3(SQUARE_NO_ALIAS512_DATA);
+//hat
+Oscil<244, AUDIO_RATE> osc3(WHITENOISE8192_DATA);
 ADSR<AUDIO_RATE, AUDIO_RATE> env3;
 int gain3;
 int trg3 = 0;
-int fall3 = 0;
-//hat
+//rim
 Oscil<181, AUDIO_RATE> osc4(TRIANGLE512_DATA);
 Oscil<103, AUDIO_RATE> osc5(TRIANGLE512_DATA);
+Oscil<103, AUDIO_RATE> osc6(TRIANGLE512_DATA);
 ADSR<AUDIO_RATE, AUDIO_RATE> env4;
 int gain4;
 int trg4 = 0;
 
 void setup() {
   Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
-  initCtrl(KONB_PIN, 16, BTN1_PIN, BTN2_PIN, HIGH);  //初始化控制参数// 旋钮 旋钮编辑状态启动范围 按钮1 按钮2
+  initCtrl(KONB_PIN, 16, BTN2_PIN, BTN1_PIN, HIGH);  //初始化控制参数// 旋钮 旋钮编辑状态启动范围 按钮1 按钮2
   initLED(2, 3, 4, 5, 6, 7, 8);                      //初始化Led引脚
 
   startMozzi(CONTROL_RATE);
@@ -84,8 +78,8 @@ void updateControl() {
 
   kick();
   clap();
-  tom();
   hat();
+  rim();
   /*TEST LOG*/
   // Serial.print(" a0= ");
   // Serial.print(mozziAnalogRead(0));
@@ -97,28 +91,27 @@ void updateControl() {
   // Serial.print(mozziAnalogRead(3));
   // Serial.print(" a4= ");
   // Serial.println(mozziAnalogRead(4));
+  // Serial.print(" d11= ");
+  // Serial.print(digitalRead(11));
   // Serial.print(" d12= ");
   // Serial.println(digitalRead(12));
   // Serial.print(" d13= ");
   // Serial.println(digitalRead(13));
-  // Serial.print(" d11= ");
-  // Serial.print(digitalRead(11));
-  // Serial.print("-WaveTrig= ");
 }
 
 void kick() {
   // int kickfreq = mozziAnalogRead(4) >> 4;
-  int kickfreq = param[1] >> 4;
+  int kickfreq = (param[1] >> 4) + mozziAnalogRead(0) / 8;
 
   env1.setADLevels(255, 255);
   env1.setTimes(0, 16, 0, 2);
-  if (mozziAnalogRead(1) > 100 && trg1 == 0) {
+  if (mozziAnalogRead(1) > 500 && trg1 == 0) {
     trg1 = 1;
     fall1 = 30;
     env1.noteOn();
     env1.noteOff();
   }
-  if (mozziAnalogRead(1) < 101 && trg1 == 1) {
+  if (mozziAnalogRead(1) < 501 && trg1 == 1) {
     trg1 = 0;
   }
   env1.update();
@@ -131,18 +124,18 @@ void kick() {
 void clap() {
   osc2.setFreq((float)AUDIO_RATE / WHITENOISE8192_SAMPLERATE);
   int clapfreq = param[3] << 2;
-  lpf2.setCutoffFreq(clapfreq + 200);
+  lpf2.setCutoffFreq(clapfreq + mozziAnalogRead(0) / 4);
   // lpf2.setCutoffFreq(mozziAnalogRead(4) << 2);
   lpf2.setResonance(256);
 
   env2.setADLevels(255, 255);
   env2.setTimes(0, 8, 0, 1);
-  if (mozziAnalogRead(2) > 100 && trg2 == 0) {
+  if (mozziAnalogRead(2) > 500 && trg2 == 0) {
     trg2 = 1;
     env2.noteOn();
     env2.noteOff();
   }
-  if (mozziAnalogRead(2) < 101 && trg2 == 1) {
+  if (mozziAnalogRead(2) < 501 && trg2 == 1) {
     trg2 = 0;
   }
   env2.update();
@@ -152,38 +145,36 @@ void clap() {
   //   Serial.print("]");
 }
 
-void tom() {
-  int tomFreq = 64 + param[5] >> 4;
-  // int tomFreq = 64 + mozziAnalogRead(4) >> 4;
+void hat() {
+  int hatFreq = 8000 + (mozziAnalogRead(0) << 3);
+  // int hatFreq = 64 + mozziAnalogRead(4) >> 4;
+
+  osc3.setFreq(hatFreq);
+  osc6.setFreq(10000);
 
   env3.setADLevels(255, 255);
-  env3.setTimes(0, 16, 0, 2);
-  if (mozziAnalogRead(3) > 100 && trg3 == 0) {
+  env3.setTimes(0, 72 + (param[5] >> 5), 0, param[5] >> 7);
+  if (digitalRead(13) == 0 && trg3 == 0) {
+    // if (mozziAnalogRead(3) > 500 && trg3 == 0) {
     trg3 = 1;
-    fall3 = 30;
     env3.noteOn();
     env3.noteOff();
   }
-  if (mozziAnalogRead(3) < 101 && trg3 == 1) {
+  if (digitalRead(13) == 1 && trg3 == 1) {
+    // if (mozziAnalogRead(3) < 501 && trg3 == 1) {
     trg3 = 0;
   }
   env3.update();
   gain3 = env3.next();
-
-  osc3.setFreq(tomFreq + fall3);
-  fall3 -= 1;
-  // gain3 = 255;//test
-
   // for (int i = 0; i < fall3; i++)
   //   Serial.print("]");
 }
 
-void hat() {
-  int hihatfreq = 800;
-  // int hihatfreq = mozziAnalogRead(4) << 4;
+void rim() {
+  int hirimfreq = param[7] << 4;
 
   env4.setADLevels(255, 255);
-  env4.setTimes(0, 128 + param[7] >> 5, 0, param[7] >> 7);
+  env4.setTimes(0, 16, 0, 4);
   if (digitalRead(11) == 0 && trg4 == 0) {
     trg4 = 1;
     env4.noteOn();
@@ -195,8 +186,8 @@ void hat() {
   env4.update();
   gain4 = env4.next();
 
-  osc4.setFreq(hihatfreq);
-  osc5.setFreq(4000);
+  osc4.setFreq(hirimfreq);
+  osc5.setFreq(mozziAnalogRead(0) + 5500);
 }
 
 AudioOutput_t updateAudio() {
@@ -204,9 +195,9 @@ AudioOutput_t updateAudio() {
   int asig1 = gain1 * (osc1.next()) >> 8;
   //clap
   int asig2 = gain2 * lpf2.next(osc2.next()) >> 8;
-  // //tom
-  int asig3 = gain3 * (osc3.next()) >> 8;
-  // //hat
+  //hat
+  int asig3 = gain3 * (osc3.phMod(12000 * osc6.next() >> 8)) >> 8;
+  //rim
   int asig4 = gain4 * (osc4.phMod(600 * osc5.next() >> 8)) >> 8;
 
   return MonoOutput::fromNBit(8, (asig1 + asig2 + asig3 + asig4));
