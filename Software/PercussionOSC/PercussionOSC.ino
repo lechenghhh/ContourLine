@@ -104,19 +104,22 @@ void updateControl() {
 }
 
 void kick() {
+  int a1 = mozziAnalogRead(1);
+
   gain1 = param[0] >> 2;
+
   // int kickfreq = mozziAnalogRead(4) >> 4;
-  int kickfreq = (param[1] >> 4) + mozziAnalogRead(0) / 8;
+  int kickfreq = (param[1] >> 4) + (mozziAnalogRead(0) >> 3);
 
   env1.setADLevels(255, 255);
   env1.setTimes(0, 16, 0, 2);
-  if (mozziAnalogRead(1) > 500 && trg1 == 0) {
+  if (a1 > 500 && trg1 == 0) {
     trg1 = 1;
     fall1 = 30;
     env1.noteOn();
     env1.noteOff();
   }
-  if (mozziAnalogRead(1) < 501 && trg1 == 1) {
+  if (a1 < 501 && trg1 == 1) {
     trg1 = 0;
   }
   env1.update();
@@ -127,6 +130,8 @@ void kick() {
 }
 
 void clap() {
+  int a2 = mozziAnalogRead(2);
+
   gain2 = param[2] >> 2;
   osc2.setFreq((float)AUDIO_RATE / WHITENOISE8192_SAMPLERATE);
   int clapfreq = param[3] << 2;
@@ -136,12 +141,12 @@ void clap() {
 
   env2.setADLevels(255, 255);
   env2.setTimes(0, 8, 0, 1);
-  if (mozziAnalogRead(2) > 500 && trg2 == 0) {
+  if (a2 > 500 && trg2 == 0) {
     trg2 = 1;
     env2.noteOn();
     env2.noteOff();
   }
-  if (mozziAnalogRead(2) < 501 && trg2 == 1) {
+  if (a2 < 501 && trg2 == 1) {
     trg2 = 0;
   }
   env2.update();
@@ -152,6 +157,8 @@ void clap() {
 }
 
 void hat() {
+  int a3 = mozziAnalogRead(3);
+
   gain3 = param[4] >> 2;
   int hatFreq = 8000 + (mozziAnalogRead(0) << 3);
   // int hatFreq = 64 + mozziAnalogRead(4) >> 4;
@@ -162,13 +169,13 @@ void hat() {
   env3.setADLevels(255, 255);
   env3.setTimes(0, 72 + (param[5] >> 5), 0, param[5] >> 7);
   // if (digitalRead(13) == 0 && trg3 == 0) {//test
-  if (mozziAnalogRead(3) > 500 && trg3 == 0) {
+  if (a3 > 500 && trg3 == 0) {
     trg3 = 1;
     env3.noteOn();
     env3.noteOff();
   }
   // if (digitalRead(13) == 1 && trg3 == 1) {//test
-  if (mozziAnalogRead(3) < 501 && trg3 == 1) {
+  if (a3 < 501 && trg3 == 1) {
     trg3 = 0;
   }
   env3.update();
