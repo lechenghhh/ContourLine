@@ -41,7 +41,7 @@
 //lecheng的控制/显示模块封装
 // #include "Module_LEDDisplay.h"
 #include "Module_Ctrl.h"
-#include "Module_Const.h"
+// #include "Module_Const.h"
 #define CONTROL_RATE 256  // Hz, powers of 2 are most reliable
 
 // for scheduling samples to play
@@ -93,17 +93,22 @@ int param[FUNC_LENGTH] = { 512, 768, 0, 0 };
 // bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_D, Led_2, Led_S};
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
   pinMode(2, OUTPUT);
+  digitalWrite(2, HIGH);
   pinMode(3, OUTPUT);
+  digitalWrite(3, HIGH);
   pinMode(4, OUTPUT);
+  digitalWrite(4, HIGH);
   pinMode(5, OUTPUT);
+  digitalWrite(5, HIGH);
   pinMode(6, OUTPUT);
+  digitalWrite(6, HIGH);
   pinMode(7, OUTPUT);
+  digitalWrite(7, HIGH);
   pinMode(8, OUTPUT);
-  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
+  digitalWrite(8, HIGH);
   initCtrl(KONB_PIN, 16, BTN2_PIN, BTN1_PIN, HIGH);  //初始化控制参数// 旋钮 旋钮编辑状态启动范围 按钮1 按钮2
-  // initLED(2, 3, 4, 5, 6, 7, 8);                      //初始化Led引脚
 
   startMozzi();
 }
@@ -111,11 +116,13 @@ void setup() {
 void updateControl() {
 
   POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
-  param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
-  // for (byte i = 2; i < 9; i++)                     //display  //简易参数展示
-  //   digitalWrite(i, HIGH);
-  // digitalWrite(POSITION + 2, LOW);
+  param[POSITION] = getParam(param[POSITION]);     //并获取修改成功的旋钮值
+  digitalWrite(POSITION + 2, LOW);                 //简易参数显示
+  digitalWrite(POSITION + 1, HIGH);                //减少调用次数
+  digitalWrite(POSITION + 3, HIGH);                //优化性能
+
   // Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
+
   Serial.print("Func ");            //func param Log
   Serial.println(POSITION);         //func param Log
   Serial.println(param[POSITION]);  //func param Log
