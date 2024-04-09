@@ -37,18 +37,17 @@
 #include <samples/bamboo/bamboo_08_2048_int8.h>  // wavetable data
 #include <samples/bamboo/bamboo_09_2048_int8.h>  // wavetable data
 #include <samples/bamboo/bamboo_10_2048_int8.h>  // wavetable data
-#include <ReverbTank.h>
 
 //lecheng的控制/显示模块封装
 // #include "Module_LEDDisplay.h"
 #include "Module_Ctrl.h"
 #include "Module_Const.h"
+#define CONTROL_RATE 256  // Hz, powers of 2 are most reliable
+
 // for scheduling samples to play
 EventDelay kTriggerDelay;
 EventDelay kTriggerSlowDelay;
-ReverbTank reverb;
 
-byte ms_per_note = 111;  // subject to CONTROL_RATE
 
 const byte NUM_PLAYERS = 3;  // 3 seems to be enough
 const byte NUM_TABLES = 11;
@@ -89,9 +88,9 @@ const int8_t* tables[NUM_TABLES] = {
 byte gains[NUM_PLAYERS];
 
 Q16n16 POSITION = 0;
-String function[FUNC_LENGTH] = { "freq", "dens", "seed", "rvb" };
-int param[FUNC_LENGTH] = { 64, 100, 320, 0 };
-// bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_D, Led_S, Led_R};
+String function[FUNC_LENGTH] = { "freq", "dens", "delay", "seed" };
+int param[FUNC_LENGTH] = { 512, 768, 0, 0 };
+// bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_D, Led_2, Led_S};
 
 void setup() {
   Serial.begin(115200);
@@ -113,27 +112,29 @@ void updateControl() {
 
   POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
-  // for (byte i = 2; i < 9; i++)  //display  //简易参数展示
+  // for (byte i = 2; i < 9; i++)                     //display  //简易参数展示
   //   digitalWrite(i, HIGH);
   // digitalWrite(POSITION + 2, LOW);
   // Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
-  Serial.print("POSITION");         //func param Log
+  Serial.print("Func ");            //func param Log
   Serial.println(POSITION);         //func param Log
   Serial.println(param[POSITION]);  //func param Log
 
-  ms_per_note = param[1];
-  kTriggerDelay.set(ms_per_note);          // countdown ms, within resolution of CONTROL_RATE倒计时ms，在CONTROL_RATE的分辨率范围内
-  kTriggerSlowDelay.set(ms_per_note * 6);  // resolution-dependent inaccuracy leads to polyrhythm :)分辨率相关的不准确性导致多节律
-  for (int i = 0; i < NUM_PLAYERS; i++) {  // play at the speed they're sampled at
-    // (aSample[i]).setFreq(32);
-    // (aSample[i]).setFreq((mozziAnalogRead(4) >> 4) + 6);
-    (aSample[i]).setFreq((param[0] >> 4) + 6);
+  uint8_t freq = (param[0] >> 4) + 6;
+  uint8_t density = 1023 - param[1];
+  uint8_t seed = param[2];
+  byte seedSpace = 7 - (param[3] >> 7);
+  // byte delayLevel = param[4] >> 2;
+  kTriggerDelay.set(density);                  // countdown ms, within resolution of CONTROL_RATE倒计时ms，在CONTROL_RATE的分辨率范围内
+  kTriggerSlowDelay.set(density * seedSpace);  // resolution-dependent inaccuracy leads to polyrhythm :)分辨率相关的不准确性导致多节律
+  for (int i = 0; i < NUM_PLAYERS; i++) {      // play at the speed they're sampled at
+    aSample[i].setFreq(freq);
     // (aSample[i]).setFreq((float) BAMBOO_00_2048_SAMPLERATE / (float) BAMBOO_00_2048_NUM_CELLS);
   }
-  static byte player = 0;
 
+  static byte player = 0;
   if (kTriggerDelay.ready()) {
-    gains[player] = rand((byte)(param[2] >> 2), (byte)255);
+    gains[player] = rand((byte)(seed >> 4), (byte)255);
     (aSample[player]).setTable(tables[rand(NUM_TABLES)]);
     (aSample[player]).start();
     player++;
@@ -142,7 +143,7 @@ void updateControl() {
   }
 
   if (kTriggerSlowDelay.ready()) {
-    gains[player] = rand((byte)(param[2] >> 8), (byte)255);
+    gains[player] = rand((byte)(seed >> 8), (byte)seed);
     (aSample[player]).setTable(tables[rand(NUM_TABLES)]);
     (aSample[player]).start();
     player++;
@@ -156,15 +157,8 @@ AudioOutput_t updateAudio() {
   for (byte i = 0; i < NUM_PLAYERS; i++) {
     dry += (int)(aSample[i]).next() * gains[i];
   }
-  int wet = reverb.next(dry);
 
-  int dryGain = (1023 - param[3]) >> 2;
-  int wetGain = param[3] >> 2;
-  int dry2 = dryGain * dry >> 8;
-  int wet2 = wetGain * wet >> 8;
-  // return MonoOutput::fromAlmostNBit(15, dry).clip();  //dry
-  return MonoOutput::fromAlmostNBit(15, wet).clip();  //wet
-  // return MonoOutput::fromAlmostNBit(15, (dry2 + wet2) >> 1).clip();  //wet
+  return MonoOutput::fromAlmostNBit(15, dry).clip();  //dry
 }
 
 void loop() {
