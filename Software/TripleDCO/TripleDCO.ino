@@ -86,7 +86,7 @@ byte wave = 0;
 ////////
 
 ////FM variables
-Q16n16 deviation;  //偏离
+Q16n16 fm_deviation;  //偏离
 Q16n16 mod_freq, knob_freq;
 ///////
 
@@ -210,23 +210,19 @@ void setup() {
 }
 
 void updateControl() {
-
   POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
-
-  for (int i = 2; i < 9; i++)  //display  //显示振荡器类型 fm add chord
+  for (int i = 2; i < 9; i++)                      //display  //显示振荡器类型 fm add chord
     digitalWrite(i, HIGH);
   for (int i = 0; i < 4; i++)  //display  //显示当前调节的参数
     if (POSITION == i) digitalWrite(i + 4, LOW);
 
-
-  Serial.print("func");      //func param
-  Serial.println(POSITION);  //func param
-  Serial.print(" =");
+  Serial.print(" mode=");           //mode 0: FM mode 1: chord, mode 2: add
+  Serial.print(mode);               //mode
+  Serial.print(" func");            //func param
+  Serial.print(POSITION);           //func param
+  Serial.print("=");                //func param
   Serial.println(param[POSITION]);  //func param
-  Serial.print("mode=");            //func param
-  Serial.println(mode);
-
 
   read_inputs();
   check_modes();
@@ -243,6 +239,7 @@ void updateControl() {
     }
   }
 }
+
 void read_inputs() {
   // freq_pot_val = mozziAnalogRead(FREQ_PIN);
   freq_pot_val = param[0];
@@ -320,12 +317,12 @@ void set_waves() {
 }
 
 void FM_setFreqs(Q16n16 freq2) {  //freq2=knob_freq
-  Serial.print("freq2 ");
-  Serial.println(freq2);
+  // Serial.print("freq2 ");
+  // Serial.println(freq2);
 
   Q16n16 toneFreq = (2270658 + freq2 * 5000) * pow(2, (pgm_read_float(&(voctpow[oct_cv_val]))));
   mod_freq = ((toneFreq >> 8) * ((p1_pot_val + p1_cv_val) / 2));
-  gain_cv_val = ((mod_freq >> 16));
+  fm_deviation = (p2_pot_val + p2_cv_val) << 6;
   osc1.setFreq_Q16n16(toneFreq);
   osc2.setFreq_Q16n16(mod_freq);
 }
@@ -542,7 +539,7 @@ void check_modes() {
 
 AudioOutput_t updateAudio() {
   if (mode == 0) {  //fm
-    return MonoOutput::fromNBit(16, (osc1.phMod(Q15n16(deviation * osc2.next() >> 8)) / 2) * (gain_cv_val / 2));
+    return MonoOutput::fromNBit(16, (osc1.phMod(Q15n16(fm_deviation * osc2.next() >> 8)) / 2) * (gain_cv_val / 2));
   } else if (mode == 2) {  //chord
     return MonoOutput::fromNBit(16, (osc1.next() * (pgm_read_byte(&(ADD_gain_table[0][ADD_gain]))) / 512 + osc2.next() * (pgm_read_byte(&(ADD_gain_table[1][ADD_gain]))) / 512 + osc3.next() * (pgm_read_byte(&(ADD_gain_table[2][ADD_gain]))) / 512 + osc4.next() * (pgm_read_byte(&(ADD_gain_table[3][ADD_gain]))) / 512 + osc5.next() * (pgm_read_byte(&(ADD_gain_table[4][ADD_gain]))) / 512 + osc6.next() * (pgm_read_byte(&(ADD_gain_table[5][ADD_gain]))) / 512 + osc7.next() * (pgm_read_byte(&(ADD_gain_table[6][ADD_gain]))) / 512 + osc8.next() * (pgm_read_byte(&(ADD_gain_table[7][ADD_gain]))) / 512) * (gain_cv_val / 4));
   } else {  //add
