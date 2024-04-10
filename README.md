@@ -35,8 +35,12 @@ arduino nano没有dac模块 是如何输出较高质量的音频的? 原理就�
 程序并不是十分完美 甚至可能存在bug 如果有明显的问题也可以留言区交流推动改进。所以也就当抛砖引玉 让大家了解arduino开发合成器的思路。
 
 ### 现有程序实现:
-[波型渐变2算子FM振荡器 `(推荐!)`](Software/FmWsWtDCO/readme.md "Software/FmWsWtDCO/readme.md")  
-[Avr-wt-synth故障振荡器](Software/Avr-wt-synth/readme.md "Software/Avr-wt-synth/readme.md")  
-[和弦/加法/FM振荡器](Software/TripleDCOForCL/readme.md "Software/TripleDCOForCL/readme.md")  
-[2算子FM振荡器](Software/FmDCO/readme.md "Software/FmDCO/readme.md")  
+[波型渐变2算子FM振荡器 `(推荐)`](Software/FmWsWtDCO/readme.md "Software/FmWsWtDCO/")  
+[和弦/加法/FM振荡器](Software/TripleDCOForCL/readme.md "Software/FmAddChordDCO/")  
+[Avr-wt-synth故障振荡器](Software/Avr-wt-synth/readme.md "Software/Avr-wt-synth/")  
+[2算子FM振荡器`(入门)`](Software/FmDCO/readme.md "Software/FmDCO/")  
+[波型渐变2算子FM振荡器`(lofi版)`](Software/FmDCO/readme.md "Software/FmWsWtDCOfor168p/")  
+[粒子合成器](Software/FmDCO/readme.md "Software/Granular/")  
+[4组打击乐发生器](Software/FmDCO/readme.md "Software/Percussion/")  
 
+<a href="https://github.com/lechenghhh/ContourLine/issues">与我讨论,或增加更多创意>></a>
