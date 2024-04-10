@@ -1,4 +1,5 @@
-# 2xOP FM WaveShape DCO 该版本是为atmega168p设计的 内存占用较小 但是波形精度较低 有lofi质感
+# 2xOP FM WaveShape DCO 
+### 该版本是为atmega168p设计的 内存占用较小 有lofi质感
 ### base on Arduino nano 168p
 #### for ContourLine 2.1  
 作者: lecheng  
