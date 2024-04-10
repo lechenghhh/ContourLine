@@ -8,7 +8,6 @@
 #include <tables/triangle_dist_cubed_2048_int8.h>
 #include <mozzi_fixmath.h>
 #include "Module_Ctrl.h"
-#include "Module_LEDDisplay.h"
 
 #define CONTROL_RATE 128
 
@@ -28,7 +27,7 @@
 #define LED_1_PIN 6
 #define LED_2_PIN 7
 #define LED_3_PIN 8
-#define FUNC_LENGTH 4  // menu length
+#define FUNC_LENGTH 3  // menu length
 
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc1(SIN2048_DATA);
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc2(SIN2048_DATA);
@@ -175,9 +174,8 @@ const static byte ADD_harm_table[8][256] PROGMEM = {
 };
 
 byte POSITION = 0;
-char function[FUNC_LENGTH][5] = { "Freq", "P1", "P2", "Mode" };
+char function[FUNC_LENGTH][5] = { "P0", "P1", "P2" };
 short param[FUNC_LENGTH] = { 0, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_1, Led_2, Led_M };
 
 void setup() {
   Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -214,8 +212,10 @@ void setup() {
 void updateControl() {
   POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
-  displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
-  if (getKnobEnable() == 0) displayLED(Led_NULL);  //如果处在非编辑状态 led将半灭显示
+  for (int i = 2; i < 9; i++)                      //display  //显示振荡器类型 fm add chord
+    digitalWrite(i, HIGH);
+  for (int i = 0; i < 4; i++)  //display  //显示当前调节的参数
+    if (POSITION == i) digitalWrite(i + 4, LOW);
 
   Serial.print(" mode=");           //mode 0: FM mode 1: chord, mode 2: add
   Serial.print(mode);               //mode
@@ -225,18 +225,17 @@ void updateControl() {
   Serial.println(param[POSITION]);  //func param
 
   read_inputs();
-  mode = param[3] >> 8;  // mode 0: FM mode 1: chord, mode 2: add
-
+  check_modes();
   if (p1_pot_val >= 1020) {  //inv knob max
     set_waves();
   } else {
     if (mode == 0) {
       knob_freq = freq_pot_val;
       FM_setFreqs(knob_freq);
-    } else if (mode == 1) {
-      CHORD_setFreqs();
-    } else {
+    } else if (mode == 2) {
       ADD_setFreqs();
+    } else {
+      CHORD_setFreqs();
     }
   }
 }
@@ -504,7 +503,39 @@ void CHORD_setFreqs() {
   osc4.setFreq(freqv4);
   osc5.setFreq(freqv5);
 }
+// mode 0: FM mode 1: chord, mode 2: add
+void check_modes() {
 
+  if (digitalRead(13) != 0) {
+    btnHover3 = 1;
+    btnTime3++;
+  }
+  if (digitalRead(13) == 0 && btnHover3 == 1) {
+    //长按按钮事件
+    if (btnTime3 > 50) {
+      Serial.println("btn long 2");  //knob
+    }
+    //短按按钮事件
+    else {
+      mode++;
+      mode = mode % 3;
+    }
+    btnHover3 = 0;
+    btnTime3 = 0;
+    knobEnable = 0;
+  }
+
+  if (mode == 2) {
+    digitalWrite(7, LOW);
+    return;
+  } else if (mode == 1) {
+    digitalWrite(8, LOW);
+    return;
+  } else if (mode == 0) {
+    digitalWrite(2, LOW);
+    return;
+  }
+}
 
 AudioOutput_t updateAudio() {
   if (mode == 0) {  //fm

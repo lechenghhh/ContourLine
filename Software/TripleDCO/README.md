@@ -2,6 +2,20 @@
 原作者: Testbild-synth  
 程序适配: lecheng  
 
+### 音频接口:  
+
+0.          a0:Voct             a1:P1  
+1.          a2:P2               a3:Mode(Deprecated)
+2.          d11:null            d9d10:AudioOut    
+
+### 显示参数:  
+
+ 0.         8位数码管显示字母        参数名词EN                   参数名词CN                    参数说明
+ 1.         F                       Freq                        频率调节                      C1-A2
+ 2.         1                       P1                          参数1调节                      
+ 3.         2                       P2                          参数2调节               
+ 4.         M                       Mode                        模式选择 FM/ADD/Chord                    
+
 
 # HAGIWO 019/022/023 Triple Oscillator (FM/CHORD/ADDITIVE)
 <img src="images/in_rack.jpg" width="40%" height="40%">
