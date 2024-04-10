@@ -1,5 +1,5 @@
-# 功能未完成
 # Harmonic oscillator
+### 功能尚未完成
 ### base on Arduino nano 328p
 #### for ContourLine 2.1  
 作者: lecheng  

@@ -1,4 +1,4 @@
-# 打击乐振荡器
+# 4组打击乐
 ### 可以通过四个触发输入接口来实现打击乐的输出
 # Perc oscillator
 ### base on Arduino nano 328p/168p
