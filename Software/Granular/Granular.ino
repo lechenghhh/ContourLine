@@ -40,18 +40,16 @@
 
 //lecheng的控制/显示模块封装
 // #include "Module_LEDDisplay.h"
-#include "Module_Ctrl.h"
 // #include "Module_Const.h"
+#include "Module_Ctrl.h"
 #define CONTROL_RATE 256  // Hz, powers of 2 are most reliable
 
-// for scheduling samples to play
-EventDelay kTriggerDelay;
-EventDelay kTriggerSlowDelay;
+EventDelay kTriggerDelay;  // for scheduling samples to play
 
+EventDelay kTriggerSlowDelay;
 
 const byte NUM_PLAYERS = 3;  // 3 seems to be enough
 const byte NUM_TABLES = 11;
-#define FUNC_LENGTH 4  //功能列表长度
 
 /*   引脚定义   */
 #define KONB_PIN 4   //
@@ -69,8 +67,7 @@ Sample<BAMBOO_00_2048_NUM_CELLS, AUDIO_RATE> aSample[NUM_PLAYERS] = {
   Sample<BAMBOO_02_2048_NUM_CELLS, AUDIO_RATE>(BAMBOO_02_2048_DATA),
 };
 
-// watch out - tables are const (but you can choose which ones you reference)
-const int8_t* tables[NUM_TABLES] = {
+const int8_t* tables[NUM_TABLES] = {  // watch out - tables are const (but you can choose which ones you reference)
   BAMBOO_00_2048_DATA,
   BAMBOO_01_2048_DATA,
   BAMBOO_02_2048_DATA,
@@ -83,14 +80,12 @@ const int8_t* tables[NUM_TABLES] = {
   BAMBOO_09_2048_DATA,
   BAMBOO_06_2048_DATA
 };
+byte gains[NUM_PLAYERS];  // gains for each sample player
 
-// gains for each sample player
-byte gains[NUM_PLAYERS];
-
-Q16n16 POSITION = 0;
-String function[FUNC_LENGTH] = { "freq", "dens", "delay", "seed" };
-int param[FUNC_LENGTH] = { 512, 768, 0, 0 };
-// bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_D, Led_2, Led_S};
+#define FUNC_LENGTH 5  //功能列表长度
+int POSITION = 0;
+String function[FUNC_LENGTH] = { "freq", "dens", "diffu", "fb", "level" };
+int param[FUNC_LENGTH] = { 512, 512, 0, 1, 128 };
 
 void setup() {
   Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -127,21 +122,23 @@ void updateControl() {
   Serial.println(POSITION);         //func param Log
   Serial.println(param[POSITION]);  //func param Log
 
-  uint8_t freq = (param[0] >> 4) + 6;
-  uint8_t density = 1023 - param[1];
-  uint8_t seed = param[2];
-  byte seedSpace = 7 - (param[3] >> 7);
-  // byte delayLevel = param[4] >> 2;
-  kTriggerDelay.set(density);                  // countdown ms, within resolution of CONTROL_RATE倒计时ms，在CONTROL_RATE的分辨率范围内
-  kTriggerSlowDelay.set(density * seedSpace);  // resolution-dependent inaccuracy leads to polyrhythm :)分辨率相关的不准确性导致多节律
-  for (int i = 0; i < NUM_PLAYERS; i++) {      // play at the speed they're sampled at
+  uint8_t freq = (param[0] >> 4) + 6;        //采样频率
+  uint8_t density = 1023 - param[1];         //密度 数值越大密度越大
+  byte diffusion = param[2];                 //扩散 密度不均匀程度
+  density = density + rand(diffusion >> 2);  //密度
+  byte feedback = 7 - (param[3] >> 7);       //重复的粒子密度
+  uint8_t level = param[4];                  //粒子音量均匀程度
+  // byte delaylevel = param[4] >> 2;
+  kTriggerDelay.set(density);                 // countdown ms, within resolution of CONTROL_RATE倒计时ms，在CONTROL_RATE的分辨率范围内
+  kTriggerSlowDelay.set(density * feedback);  // resolution-dependent inaccuracy leads to polyrhythm :)分辨率相关的不准确性导致多节律
+  for (int i = 0; i < NUM_PLAYERS; i++) {     // play at the speed they're sampled at
     aSample[i].setFreq(freq);
     // (aSample[i]).setFreq((float) BAMBOO_00_2048_SAMPLERATE / (float) BAMBOO_00_2048_NUM_CELLS);
   }
 
   static byte player = 0;
   if (kTriggerDelay.ready()) {
-    gains[player] = rand((byte)(seed >> 4), (byte)255);
+    gains[player] = rand((byte)(level >> 4), (byte)255);
     (aSample[player]).setTable(tables[rand(NUM_TABLES)]);
     (aSample[player]).start();
     player++;
@@ -150,7 +147,7 @@ void updateControl() {
   }
 
   if (kTriggerSlowDelay.ready()) {
-    gains[player] = rand((byte)(seed >> 8), (byte)seed);
+    gains[player] = rand((byte)(level >> 8), (byte)level);
     (aSample[player]).setTable(tables[rand(NUM_TABLES)]);
     (aSample[player]).start();
     player++;
