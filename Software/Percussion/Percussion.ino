@@ -187,22 +187,26 @@ void hat() {
 void rim() {
   gain4 = param[6] >> 2;
 
-  int hirimfreq = param[7] << 4;
+  int hirimfreq = param[7] << 2;
+  int hirimfreqMOD = mozziAnalogRead(0) << 2;
+  hirimfreq = hirimfreq + hirimfreqMOD;
+
 
   env4.setADLevels(255, 255);
   env4.setTimes(0, 16, 0, 4);
-  if (digitalRead(11) == 0 && trg4 == 0) {
+  if (digitalRead(11) == 1 && trg4 == 0) {
     trg4 = 1;
     env4.noteOn();
     env4.noteOff();
   }
-  if (digitalRead(11) == 1 && trg4 == 1) {
+  if (digitalRead(11) == 0 && trg4 == 1) {
     trg4 = 0;
   }
   env4.update();
   adsr4 = env4.next();
 
   osc4.setFreq(hirimfreq);
+  // osc4.setFreq(12500);
   osc5.setFreq(mozziAnalogRead(0) + 5500);
 }
 
