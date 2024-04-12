@@ -5,7 +5,6 @@
 
 #include <tables/sin512_int8.h>             // table for Oscils to play
 #include <tables/halfsinwindow512_uint8.h>  // sine table for oscillator
-// #include <tables/triangle_dist_squared_2048_int8.h>
 #include <tables/square_no_alias512_int8.h>
 #include <tables/saw256_int8.h>
 #include <tables/waveshape_chebyshev_6th_256_int8.h>
@@ -16,9 +15,6 @@
 #include <tables/halfsin256_uint8.h>
 #include <tables/cos256_int8.h>
 #include <tables/cosphase256_int8.h>
-// #include <tables/triangle_dist_cubed_2048_int8.h>
-// #include <tables/triangle_hermes_2048_int8.h>
-// #include <tables/triangle_valve_2_2048_int8.h>
 #include <tables/square_analogue512_int8.h>
 #include <tables/waveshape1_softclip_int8.h>
 #include <tables/waveshape_sigmoid_int8.h>
@@ -104,8 +100,11 @@ void updateControl() {
   if (getKnobEnable() == 0) displayLED(Led_NULL);                   //如果处在非编辑状态 led将半灭显示
   Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
 
-  /*震荡与音高范围计算*/
-  Pitch = param[0];           //音高旋钮参数
+  /*音高 伏每八度*/
+  Pitch = param[0];                                                                                            //音高旋钮参数
+  OP1Freq = (BaseFreq + Pitch * FreqRange) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));  // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
+
+  /*震荡范围*/
   RangeType = param[1] >> 8;  //震荡范围
   switch (RangeType) {
     case 0:
@@ -132,18 +131,16 @@ void updateControl() {
   ShapeMod = mozziAnalogRead(CV1_PIN) >> 3;  //波形渐变CV值获取A1
 
   /*FM量*/
-  OP1Freq = (BaseFreq + Pitch * FreqRange) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));  // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
-  OP2Freq = ((OP1Freq >> 8) * (param[4] / 2 + mozziAnalogRead(CV2_PIN) / 2));                                  // mozziAnalogRead(1)
+  OP2Freq = ((OP1Freq >> 8) * (param[4] / 2 + mozziAnalogRead(CV2_PIN) / 2));  // mozziAnalogRead(1)
   OP2Amt = ((OP2Freq >> 16) * (1 + param[5] + mozziAnalogRead(CV3_PIN)));
   osc1.setFreq_Q16n16(OP1Freq);  //给主波形设置频率
   osc2.setFreq_Q16n16(OP2Freq);  //给算子设置频率
 
-  Q16n16 WaveSelect = param[6] >> 6;  //波表  将1023分成16个波表类型
-  Q16n16 WaveChange = param[7] >> 6;  //偏移量为16
   //波形切换触发器
+  Q16n16 WaveSelect = param[6] >> 6;                         //波表  将1023分成16个波表类型
+  Q16n16 WaveChange = param[7] >> 6;                         //偏移量为16
   if (digitalRead(GATE_PIN) != WaveTrig && WaveTrig == 0) {  //d13按钮可以用来测试
     WaveTrig = 1;
-
     if (RangeType == 0) {  //lfo模式 用于rst
     }
     if (RangeType != 0) {  //vco模式 用于切换波形
@@ -156,7 +153,7 @@ void updateControl() {
   }
   WaveType = (WaveSelect + WavePosition) % 16;
 
-  //设置波形
+  //波形类型
   switch (WaveType) {
     default:
       osc1.setTable(SIN512_DATA);
