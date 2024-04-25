@@ -132,7 +132,7 @@ void updateControl() {
 
   /*FM量*/
   // OP2Freq = ((OP1Freq >> 8) * (param[4] / 2 + mozziAnalogRead(CV2_PIN) / 2));  //旧版对op1的频率未作精确控制
-  OP2Freq = (OP1Freq >> 1) * (param[4] >> 6);  //新版倍频算法 0.5-16倍频
+  OP2Freq = (OP1Freq >> 1) * ((param[4] + mozziAnalogRead(CV2_PIN)) >> 5);  //新版倍频算法 0.5-16倍频
   // if (param[4] < 512) OP2Freq = (OP1Freq >> 1) * (param[4] >> 5);        //新版倍频算法 0.5-16倍频
   // if (param[4] > 511) OP2Freq = (OP1Freq >> 8) * (param[4] * 2 - 1023);  //新版任意频率算法
 
