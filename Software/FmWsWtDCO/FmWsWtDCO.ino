@@ -131,12 +131,14 @@ void updateControl() {
   ShapeMod = mozziAnalogRead(CV1_PIN) >> 3;  //波形渐变CV值获取A1
 
   /*FM量*/
-  // OP2Freq = ((OP1Freq >> 8) * (param[4] / 2 + mozziAnalogRead(CV2_PIN) / 2));  //旧版使用a2+param4一同控制op2的频率 但是对op1的频率未作控制
-  OP2Freq = (OP1Freq >> 1) * (param[4] >> 6);  //新版只使用param4调整op2频率
-  OP2Amt = ((OP2Freq >> 16) * (1 + param[5] + mozziAnalogRead(CV3_PIN)));
-  osc1.setFreq_Q16n16(OP1Freq);  //给主波形设置频率
-  osc2.setFreq_Q16n16(OP2Freq);  //给算子设置频率
+  // OP2Freq = ((OP1Freq >> 8) * (param[4] / 2 + mozziAnalogRead(CV2_PIN) / 2));  //旧版对op1的频率未作精确控制
+  OP2Freq = (OP1Freq >> 1) * (param[4] >> 6);  //新版倍频算法 0.5-16倍频
+  // if (param[4] < 512) OP2Freq = (OP1Freq >> 1) * (param[4] >> 5);        //新版倍频算法 0.5-16倍频
+  // if (param[4] > 511) OP2Freq = (OP1Freq >> 8) * (param[4] * 2 - 1023);  //新版任意频率算法
 
+  OP2Amt = ((OP2Freq >> 16) * (1 + param[5] + mozziAnalogRead(CV3_PIN)));  //op2amount
+  osc1.setFreq_Q16n16(OP1Freq);                                            //给主波形设置频率
+  osc2.setFreq_Q16n16(OP2Freq);                                            //给算子设置频率
 
   //波形切换触发器
   Q16n16 WaveSelect = param[6] >> 6;                         //波表  将1023分成16个波表类型
@@ -222,10 +224,10 @@ void updateControl() {
   // Serial.println(digitalRead(12));
   // Serial.print(" d13= ");
   // Serial.println(digitalRead(13));
-  Serial.print("-OP1Freq-");
-  Serial.print(OP1Freq);
-  Serial.print("-OP2Freq-");
-  Serial.print(OP2Freq);
+  // Serial.print("-OP1Freq-");
+  // Serial.print(OP1Freq);
+  // Serial.print("-OP2Freq-");
+  // Serial.print(OP2Freq);
   // Serial.print("-OP2Amt-");
   // Serial.println(OP2Amt);
   // Serial.print(" d11= ");
