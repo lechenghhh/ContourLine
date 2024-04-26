@@ -122,12 +122,12 @@ void updateControl() {
   Serial.println(POSITION);         //func param Log
   Serial.println(param[POSITION]);  //func param Log
 
-  uint8_t freq = (param[0] >> 4) + 6;        //采样频率
-  uint8_t density = 1023 - param[1];         //密度 数值越大密度越大
-  byte diffusion = param[2];                 //扩散 密度不均匀程度
-  density = density + rand(diffusion >> 2);  //密度
-  byte feedback = 7 - (param[3] >> 7);       //重复的粒子密度
-  uint8_t level = param[4];                  //粒子音量均匀程度
+  uint8_t freq = ((param[0] + mozziAnalogRead(0)) >> 4) + 6;   //采样频率
+  uint8_t density = 1023 - (param[1] + mozziAnalogRead(1));    //密度 数值越大密度越大
+  byte diffusion = param[2] + mozziAnalogRead(2);              //扩散 密度不均匀程度
+  density = density + rand(diffusion >> 2);                    //密度
+  byte feedback = 7 - ((param[3] + mozziAnalogRead(3)) >> 7);  //重复的粒子密度
+  uint8_t level = param[4];                                    //粒子音量均匀程度
   // byte delaylevel = param[4] >> 2;
   kTriggerDelay.set(density);                 // countdown ms, within resolution of CONTROL_RATE倒计时ms，在CONTROL_RATE的分辨率范围内
   kTriggerSlowDelay.set(density * feedback);  // resolution-dependent inaccuracy leads to polyrhythm :)分辨率相关的不准确性导致多节律
