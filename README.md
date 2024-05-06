@@ -34,12 +34,12 @@ gerber/bom文件与清单已经提供 如果不了解如何下单pcb板 可以�
 
 ### 现有程序实现:
 [波型渐变2算子FM振荡器 `(推荐)`](Software/FmWsWtDCO/readme.md "Software/FmWsWtDCO/")  
-[和弦/加法/FM振荡器](Software/TripleDCOForCL/readme.md "Software/FmAddChordDCO/")  
+[和弦/加法/FM振荡器](Software/FmAddChordDCO/readme.md "Software/FmAddChordDCO/")  
 [Avr-wt-synth故障振荡器](Software/Avr-wt-synth/readme.md "Software/Avr-wt-synth/")  
 [2算子FM振荡器`(入门)`](Software/FmDCO/readme.md "Software/FmDCO/")  
-[波型渐变2算子FM振荡器`(lofi版)`](Software/FmDCO/readme.md "Software/FmWsWtDCOfor168p/")  
-[粒子合成器](Software/FmDCO/readme.md "Software/Granular/")  
-[4组打击乐发生器](Software/FmDCO/readme.md "Software/Percussion/")  
+[波型渐变2算子FM振荡器`(lofi版)`](Software/FmWsWtDCOfor168p/readme.md "Software/FmWsWtDCOfor168p/")  
+[粒子合成器](Software/Granular/readme.md "Software/Granular/")  
+[4组打击乐发生器](Software/Percussion/readme.md "Software/Percussion/")  
 
 ### 程序拓展说明：
 程序依赖于`mozzi library` 强大的声音合成库
