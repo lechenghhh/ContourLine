@@ -31,7 +31,7 @@
 
 Q16n16 POSITION = 0;
 String function[FUNC_LENGTH] = { "kick", "tone", "clap", "freq", "hat", "decay", "rim", "pitch" };
-int param[FUNC_LENGTH] = { 768, 1024, 768, 700, 768, 256, 768, 512 };
+int param[FUNC_LENGTH] = { 768, 512, 768, 700, 768, 256, 768, 512 };
 bool* ledGroup[FUNC_LENGTH] = { Led_K, Led_T, Led_C, Led_F, Led_H, Led_D, Led_R, Led_P };
 
 //kick
@@ -109,13 +109,13 @@ void kick() {
   gain1 = param[0] >> 2;
 
   // int kickfreq = mozziAnalogRead(4) >> 4;
-  int kickfreq = (param[1] >> 4) + (mozziAnalogRead(0) >> 3);
+  int kickfreq = (mozziAnalogRead(0) >> 3);
 
   env1.setADLevels(255, 255);
   env1.setTimes(0, 16, 0, 2);
   if (a1 > 500 && trg1 == 0) {
     trg1 = 1;
-    fall1 = 30;
+    fall1 = 800;
     env1.noteOn();
     env1.noteOff();
   }
@@ -126,7 +126,8 @@ void kick() {
   adsr1 = env1.next();
 
   osc1.setFreq(kickfreq + fall1);
-  fall1 -= 3;
+  fall1 -= (128 - (param[1] >> 3));
+  if (fall1 < 0) fall1 = 0;
 }
 
 void clap() {
