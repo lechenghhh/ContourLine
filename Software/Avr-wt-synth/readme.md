@@ -3,7 +3,30 @@ avr-wt-synth (Glitch Synth)
 原作者: stosem  
 程序适配: lecheng  
 
+### 修改适配:  
 
+1.原版使用d3 d4来显示debug模式与trig触发led发光提示 已经弃用  
+2.原版没有手动调整音调的能力,改进版增加了小幅度调整音高的能力  
+3.debug模式已经取消  
+
+### 音频接口:  
+
+0.          a0:Voct                      a1:Modulation   
+1.          a2:Obertone                  a3:FM   
+2.          d11:Trig(有触发才有声音)      d9d10:AudioOut    
+
+### 显示参数:  
+
+ 0.         8位数码管显示字母        参数名词EN                   *请搜索原作者文档可以找到参数的含义
+ 1.         P                       Pitch                     
+ 2.         W                       WaveTable                     
+ 3.         M                       Modulation        
+ 4.         O                       Obertone      
+ 5.         G                       Glitch         
+
+  
+##  
+### (以下是原作者文档转载) 
 # Info
 
 Eurorack Wavetable-based VCO. Atari Glitch. DIY
