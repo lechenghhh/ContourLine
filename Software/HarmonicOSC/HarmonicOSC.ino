@@ -35,6 +35,12 @@ String function[FUNC_LENGTH] = { "Root", "RAmp", "Note2", "N2Amp", "Note3", "N3A
 int param[FUNC_LENGTH] = { 0, 1024, 0, 128, 0, 128, 0, 128, 0, 128, 0 };
 bool* ledGroup[FUNC_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7, Led_8, Led_9, Led_0, Led_T };
 
+int gain1 = 255;  //0-255
+int gain2 = 255;
+int gain3 = 255;
+int gain4 = 255;
+int gain5 = 255;
+
 void setup() {
   Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
   startMozzi(CONTROL_RATE);
@@ -142,15 +148,23 @@ void updateControl() {
   osc3.setFreq(freqv3);
   osc4.setFreq(freqv4);
   osc5.setFreq(freqv5);
+
+  gain1 = param[1] >> 2;  //0-255 mozziAnalogRead
+  gain2 = param[3] >> 2;
+  gain3 = param[5] >> 2;
+  gain4 = param[7] >> 2;
+  gain5 = param[9] >> 2;
 }
 
 AudioOutput_t updateAudio() {
-  int gain1 = param[1] >> 2;
-  int gain2 = param[1] >> 2;
-  int gain3 = param[1] >> 2;
-  int gain4 = param[1] >> 2;
-  int gain5 = param[1] >> 2;
-  return MonoOutput::fromNBit(16, ((osc1.next() / 8 + osc2.next() / 8 + osc3.next() / 8 + osc4.next() / 8 + osc5.next() / 8) << 8));
+  int value1 = (osc1.next()) * gain1 >> 11;  // 1/8
+  int value2 = (osc2.next()) * gain2 >> 11;
+  int value3 = (osc3.next()) * gain3 >> 11;
+  int value4 = (osc4.next()) * gain4 >> 11;
+  int value5 = (osc5.next()) * gain5 >> 11;
+
+  return MonoOutput::fromNBit(16, (value1 + value2 + value3 + value4 + value5) * 255);
+  // return MonoOutput::fromNBit(16, ((osc1.next() / 8 + osc2.next() / 8 + osc3.next() / 8 + osc4.next() / 8 + osc5.next() / 8) << 8));
 }
 
 void loop() {
