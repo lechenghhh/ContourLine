@@ -30,45 +30,6 @@ Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc3(SIN2048_DATA);
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc4(SIN2048_DATA);
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc5(SIN2048_DATA);
 
-int btnHover3 = 0;  //按下事件判断
-int btnTime3 = 0;   //长按事件判断
-
-uint16_t freq_pot_val = 0;  //频率旋钮
-uint16_t oct_cv_val = 0;    //voct cv
-uint16_t p1_pot_val = 0;
-uint16_t p1_cv_val = 0;
-uint16_t p2_pot_val = 0;
-uint16_t p2_cv_val = 0;
-int gain_cv_val = 0;
-uint8_t mode = 0;
-uint8_t mode_val = 0;
-
-////chord variables
-int freq1 = 110;  //base freq
-
-int freqv1 = 440;  //apply voct
-int freqv2 = 440;
-int freqv3 = 440;
-int freqv4 = 440;
-int freqv5 = 440;
-
-byte note1 = 0;  //Root
-byte note2 = 0;  //2nd
-byte note3 = 0;  //3rd
-byte note4 = 0;  //4th
-byte note5 = 0;  //Root
-
-byte inv_aply1 = 0;  //0 = no inv , 1 = inv , Root 转位和弦设置 八度参数
-byte inv_aply2 = 0;  //2nd
-byte inv_aply3 = 0;  //3rd
-byte inv_aply4 = 0;  //4th
-bool inv_aply5 = 0;  //0 = no output root sound , 1 = output root sound
-
-int inv = 0;
-int inv_knob = 0;
-int chord = 0;
-byte wave = 0;
-
 byte POSITION = 0;
 String function[FUNC_LENGTH] = { "Root", "RAmp", "Note2", "N2Amp", "Note3", "N3Amp", "Note4", "N4Amp", "Note5", "N5Amp", "WaveT" };
 int param[FUNC_LENGTH] = { 0, 1024, 0, 128, 0, 128, 0, 128, 0, 128, 0 };
@@ -77,15 +38,8 @@ bool* ledGroup[FUNC_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7,
 void setup() {
   Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
   startMozzi(CONTROL_RATE);
-
-  initCtrl(4, 50, 12, 13, HIGH);  //初始化控制参数// 旋钮 旋钮修改启动范围 按钮1 按钮2
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
-  pinMode(6, OUTPUT);
-  pinMode(7, OUTPUT);
-  pinMode(8, OUTPUT);
+  initCtrl(4, 50, 13, 12, HIGH);  //初始化控制参数// 旋钮 旋钮修改启动范围 按钮1 按钮2
+  initLED(2, 3, 4, 5, 6, 7, 8);   //初始化Led引脚
   pinMode(11, INPUT);
   digitalWrite(11, LOW);
 }
@@ -96,21 +50,21 @@ void updateControl() {
   displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);  //如果处在非编辑状态 led将半灭显示
 
-  // Serial.print(" mode=");           //mode 0: FM mode 1: add, mode 2: chord
-  // Serial.print(mode);               //mode
-  Serial.print(" func");            //func param
-  Serial.print(POSITION);           //func param
-  Serial.print("=");                //func param
-  Serial.println(param[POSITION]);  //func param
-
-  freq_pot_val = param[0];
-  oct_cv_val = mozziAnalogRead(V_OCT_PIN);
-  p1_pot_val = param[1];
-  p1_cv_val = mozziAnalogRead(P1_CV_PIN);
-  p2_pot_val = param[2];
-  p2_cv_val = mozziAnalogRead(P2_CV_PIN);
-  gain_cv_val = 255;
-  mode_val = mozziAnalogRead(MODE_CV_PIN) / 100;
+  Serial.print(" func");          //func param
+  Serial.print(POSITION);         //func param
+  Serial.print("=");              //func param
+  Serial.print(param[POSITION]);  //func param
+  Serial.print(" n1=");           //func param
+  Serial.print(param[0] >> 5);    //func param
+  Serial.print(" n2=");           //func param
+  Serial.print(param[2] >> 5);    //func param
+  Serial.print(" n3=");           //func param
+  Serial.print(param[4] >> 5);    //func param
+  Serial.print(" n4=");           //func param
+  Serial.print(param[6] >> 5);    //func param
+  Serial.print(" n5=");           //func param
+  Serial.print(param[8] >> 5);    //func param
+  Serial.println("");             //func param
 
   switch (param[10] >> 7) {
     default:  //sin
@@ -170,35 +124,20 @@ void updateControl() {
       osc5.setTable(HALFSIN256_DATA);
       break;
   }
-  CHORD_setFreqs();
-}
+  byte note1 = (pgm_read_byte((param[0] >> 5) * 17));
+  byte note2 = (pgm_read_byte((param[2] >> 5) * 17));
+  byte note3 = (pgm_read_byte((param[4] >> 5) * 17));
+  byte note4 = (pgm_read_byte((param[6] >> 5) * 17));
+  byte note5 = (pgm_read_byte((param[8] >> 5) * 17));
 
-void CHORD_setFreqs() {
-  //chord模式选择
-  chord = constrain((p2_pot_val / 128) + (p2_cv_val / 128), 0, 7);
-  //inversion setting 转位和弦设置
-  inv = constrain((p1_pot_val / 64) + (p1_cv_val / 64), 0, 15);
-
-  //setting chord note
-  // note1 = (pgm_read_byte(&(chord_table[chord][0])));
-  // note2 = (pgm_read_byte(&(chord_table[chord][1])));
-  // note3 = (pgm_read_byte(&(chord_table[chord][2])));
-  // note4 = (pgm_read_byte(&(chord_table[chord][3])));
-  // note5 = (pgm_read_byte(&(chord_table[chord][0])));
-  note1 = (pgm_read_byte((param[0] >> 5) * 17));
-  note2 = (pgm_read_byte((param[2] >> 5) * 17));
-  note3 = (pgm_read_byte((param[4] >> 5) * 17));
-  note4 = (pgm_read_byte((param[6] >> 5) * 17));
-  note5 = (pgm_read_byte((param[8] >> 5) * 17));
-
-  freq1 = freq_pot_val / 4;
-
-  freqv1 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note1]))));  //ROOT
-  freqv2 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note2]))));  //2nd
-  freqv3 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note3]))));  //3rd
-  freqv4 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note4]))));  //4th
-  freqv5 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note5]))));  //5th
-  osc1.setFreq(freqv1);                                                       // set the frequency
+  uint16_t oct_cv_val = mozziAnalogRead(V_OCT_PIN);
+  int freq1 = param[0] >> 2;
+  int freqv1 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note1]))));  //ROOT
+  int freqv2 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note2]))));  //2nd
+  int freqv3 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note3]))));  //3rd
+  int freqv4 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note4]))));  //4th
+  int freqv5 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note5]))));  //5th
+  osc1.setFreq(freqv1);                                                           // set the frequency
   osc2.setFreq(freqv2);
   osc3.setFreq(freqv3);
   osc4.setFreq(freqv4);
@@ -206,7 +145,12 @@ void CHORD_setFreqs() {
 }
 
 AudioOutput_t updateAudio() {
-  return MonoOutput::fromNBit(16, ((osc1.next() / 8 + osc2.next() / 8 + osc3.next() / 8 + osc4.next() / 8 + osc5.next() / 8 * inv_aply5) * gain_cv_val));
+  int gain1 = param[1] >> 2;
+  int gain2 = param[1] >> 2;
+  int gain3 = param[1] >> 2;
+  int gain4 = param[1] >> 2;
+  int gain5 = param[1] >> 2;
+  return MonoOutput::fromNBit(16, ((osc1.next() / 8 + osc2.next() / 8 + osc3.next() / 8 + osc4.next() / 8 + osc5.next() / 8) << 8));
 }
 
 void loop() {
