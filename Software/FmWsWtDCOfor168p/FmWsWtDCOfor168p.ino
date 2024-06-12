@@ -1,7 +1,7 @@
-#include <MozziGuts.h>
+#include <Mozzi.h>
 #include <Oscil.h>
 #include <WaveShaper.h>
-#include <mozzi_fixmath.h>
+#include <FixMath.h>
 
 #include <tables/sin256_int8.h>             // table for Oscils to play
 #include <tables/halfsinwindow512_uint8.h>  // sine table for oscillator

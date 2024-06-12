@@ -1,12 +1,12 @@
 //https://github.com/Testbild-synth/HAGIWO_arduino_oscillator //项目地址
-#include <MozziGuts.h>
+#include <Mozzi.h>
 #include <Oscil.h>
 #include <tables/sin2048_int8.h>
 #include <tables/saw2048_int8.h>
 #include <tables/triangle_hermes_2048_int8.h>
 #include <tables/square_no_alias_2048_int8.h>
 #include <tables/triangle_dist_cubed_2048_int8.h>
-#include <mozzi_fixmath.h>
+#include <FixMath.h>
 #include "Module_Ctrl.h"
 #include "Module_LEDDisplay.h"
 

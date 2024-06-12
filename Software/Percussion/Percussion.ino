@@ -1,7 +1,7 @@
-#include <MozziGuts.h>
+#include <Mozzi.h>
 #include <Oscil.h>
 #include <WaveShaper.h>
-#include <mozzi_fixmath.h>
+#include <FixMath.h>
 #include <ADSR.h>
 #include <LowPassFilter.h>
 #include <tables/whitenoise8192_int8.h>
@@ -208,7 +208,8 @@ void rim() {
 
   osc4.setFreq(hirimfreq);
   // osc4.setFreq(12500);
-  osc5.setFreq(mozziAnalogRead(0) + 5500);
+  int tmpFreq =mozziAnalogRead(0) ;
+  osc5.setFreq(tmpFreq+ 5500);
 }
 
 AudioOutput_t updateAudio() {

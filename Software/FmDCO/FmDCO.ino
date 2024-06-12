@@ -1,8 +1,8 @@
-#include <MozziGuts.h>
+#include <Mozzi.h>
 #include <Oscil.h>
 // #include <tables/cos2048_int8.h>  // table for Oscils to play
 #include <tables/cos256_int8.h>  // table for Oscils to play
-#include <mozzi_fixmath.h>
+#include <FixMath.h>
 #include "Module_Ctrl.h"
 
 #define CONTROL_RATE 256  // Hz, powers of 2 are most reliable

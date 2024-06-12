@@ -1,5 +1,5 @@
 //https://github.com/Testbild-synth/HAGIWO_arduino_oscillator //项目地址
-#include <MozziGuts.h>
+#include <Mozzi.h>
 #include <Oscil.h>
 #include <tables/sin2048_int8.h>
 #include <tables/saw2048_int8.h>
@@ -9,8 +9,8 @@
 #include <tables/halfsin256_uint8.h>
 #include <tables/square_analogue512_int8.h>
 #include <tables/phasor256_int8.h>
+#include <FixMath.h>
 
-#include <mozzi_fixmath.h>
 #include "Module_Ctrl.h"
 #include "Module_LEDDisplay.h"
 #include "Module_Const.h"
