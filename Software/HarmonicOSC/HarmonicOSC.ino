@@ -32,7 +32,7 @@ Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc5(SIN2048_DATA);
 
 byte POSITION = 0;
 String function[FUNC_LENGTH] = { "Root", "RAmp", "Note2", "N2Amp", "Note3", "N3Amp", "Note4", "N4Amp", "Note5", "N5Amp", "WaveT" };
-int param[FUNC_LENGTH] = { 0, 1024, 0, 128, 0, 128, 0, 128, 0, 128, 0 };
+int param[FUNC_LENGTH] = { 0, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 bool* ledGroup[FUNC_LENGTH] = { Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7, Led_8, Led_9, Led_0, Led_T };
 
 int gain1 = 255;  //0-255
@@ -68,8 +68,14 @@ void updateControl() {
   Serial.print(param[4] >> 5);    //func param
   Serial.print(" n4=");           //func param
   Serial.print(param[6] >> 5);    //func param
-  Serial.print(" n5=");           //func param
-  Serial.print(param[8] >> 5);    //func param
+  Serial.print(" gain1=");        //func param
+  Serial.print(gain1);            //func param
+  Serial.print(" gain2=");        //func param
+  Serial.print(gain2);            //func param
+  Serial.print(" gain3=");        //func param
+  Serial.print(gain3);            //func param
+  Serial.print(" gain4=");        //func param
+  Serial.print(gain4);            //func param
   Serial.println("");             //func param
 
   switch (param[10] >> 7) {
@@ -149,21 +155,26 @@ void updateControl() {
   osc4.setFreq(freqv4);
   osc5.setFreq(freqv5);
 
-  gain1 = param[1] >> 2;  //0-255 mozziAnalogRead
-  gain2 = param[3] >> 2;
-  gain3 = param[5] >> 2;
-  gain4 = param[7] >> 2;
-  gain5 = param[9] >> 2;
+  gain1 = (param[1] + mozziAnalogRead(1)) >> 5;  //0-255 mozziAnalogRead
+  gain2 = (param[3] + mozziAnalogRead(2)) >> 5;
+  gain3 = (param[5] + mozziAnalogRead(3)) >> 5;
+  gain4 = (param[7] + mozziAnalogRead(5)) >> 5;
+  gain5 = (param[9] + mozziAnalogRead(6)) >> 5;
+  if (gain1 > 32) gain1 = 32;
+  if (gain2 > 32) gain2 = 32;
+  if (gain3 > 32) gain3 = 32;
+  if (gain4 > 32) gain4 = 32;
+  if (gain5 > 32) gain5 = 32;
 }
 
 AudioOutput_t updateAudio() {
-  int value1 = (osc1.next()) * gain1 >> 11;  // 1/8
-  int value2 = (osc2.next()) * gain2 >> 11;
-  int value3 = (osc3.next()) * gain3 >> 11;
-  int value4 = (osc4.next()) * gain4 >> 11;
-  int value5 = (osc5.next()) * gain5 >> 11;
+  int value1 = (osc1.next()) * gain1;  // 1/8
+  int value2 = (osc2.next()) * gain2;
+  int value3 = (osc3.next()) * gain3;
+  int value4 = (osc4.next()) * gain4;
+  // int value5 = (osc5.next()) * gain5;
 
-  return MonoOutput::fromNBit(16, (value1 + value2 + value3 + value4 + value5) * 255);
+  return MonoOutput::fromNBit(16, (value1 + value2 + value3 + value4));
   // return MonoOutput::fromNBit(16, ((osc1.next() / 8 + osc2.next() / 8 + osc3.next() / 8 + osc4.next() / 8 + osc5.next() / 8) << 8));
 }
 
