@@ -31,8 +31,9 @@ Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc4(SIN2048_DATA);
 
 byte POSITION = 0;
 String function[FUNC_LENGTH] = { "Root", "RAmp", "Note2", "N2Amp", "Note3", "N3Amp", "Note4", "N4Amp", "WaveT" };
-int param[FUNC_LENGTH] = { 0, 1024, 0, 0, 0, 0, 0, 0, 0 };
+int param[FUNC_LENGTH] = { 0, 1023, 0, 128, 0, 128, 0, 128, 0 };
 bool* ledGroup[FUNC_LENGTH] = { Led_0, Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7, Led_T };
+int tmp_d11 = 0;
 
 int gain1 = 255;  //0-255
 int gain2 = 255;
@@ -50,34 +51,37 @@ void setup() {
 }
 
 void updateControl() {
+  //control & display
   POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);  //如果处在非编辑状态 led将半灭显示
 
+  //log
   Serial.print(" func");          //func param
   Serial.print(POSITION);         //func param
   Serial.print("=");              //func param
   Serial.print(param[POSITION]);  //func param
-  Serial.print(" n1=");           //func param
-  Serial.print(param[0] >> 5);    //func param
-  Serial.print(" n2=");           //func param
-  Serial.print(param[2] >> 5);    //func param
-  Serial.print(" n3=");           //func param
-  Serial.print(param[4] >> 5);    //func param
-  Serial.print(" n4=");           //func param
-  Serial.print(param[6] >> 5);    //func param
-  Serial.print(" gain1=");        //func param
-  Serial.print(gain1);            //func param
-  Serial.print(" gain2=");        //func param
-  Serial.print(gain2);            //func param
-  Serial.print(" gain3=");        //func param
-  Serial.print(gain3);            //func param
-  Serial.print(" gain4=");        //func param
-  Serial.print(gain4);            //func param
-  Serial.println("");             //func param
+  // Serial.print(" n1=");           //func param
+  // Serial.print(param[0] >> 5);    //func param
+  // Serial.print(" n2=");           //func param
+  // Serial.print(param[2] >> 5);    //func param
+  // Serial.print(" n3=");           //func param
+  // Serial.print(param[4] >> 5);    //func param
+  // Serial.print(" n4=");           //func param
+  // Serial.print(param[6] >> 5);    //func param
+  // Serial.print(" gain1=");        //func param
+  // Serial.print(gain1);            //func param
+  // Serial.print(" gain2=");        //func param
+  // Serial.print(gain2);            //func param
+  // Serial.print(" gain3=");        //func param
+  // Serial.print(gain3);            //func param
+  // Serial.print(" gain4=");        //func param
+  // Serial.print(gain4);            //func param
+  Serial.println("");  //func param
 
-  switch (param[8] >> 7) {
+  //setwaves
+  switch (param[8] >> 6) {
     case 0:  //sin
       osc1.setTable(SIN2048_DATA);
       osc2.setTable(SIN2048_DATA);
@@ -126,7 +130,69 @@ void updateControl() {
       osc3.setTable(HALFSIN256_DATA);
       osc4.setTable(HALFSIN256_DATA);
       break;
+    case 8:  //sin
+      osc1.setTable(SIN2048_DATA);
+      osc2.setTable(TRIANGLE_HERMES_2048_DATA);
+      osc3.setTable(TRIANGLE_HERMES_2048_DATA);
+      osc4.setTable(SAW2048_DATA);
+      break;
+    case 9:  //tri hermes
+      osc1.setTable(SIN2048_DATA);
+      osc2.setTable(TRIANGLE_DIST_CUBED_2048_DATA);
+      osc3.setTable(SAW2048_DATA);
+      osc4.setTable(SQUARE_NO_ALIAS_2048_DATA);
+      break;
+    case 10:  //tri dist
+      osc1.setTable(SIN2048_DATA);
+      osc2.setTable(TRIANGLE_DIST_CUBED_2048_DATA);
+      osc3.setTable(TRIANGLE_DIST_CUBED_2048_DATA);
+      osc4.setTable(TRIANGLE_DIST_CUBED_2048_DATA);
+      break;
+    case 11:  //saw
+      osc1.setTable(TRIANGLE_DIST_CUBED_2048_DATA);
+      osc2.setTable(SAW2048_DATA);
+      osc3.setTable(PHASOR256_DATA);
+      osc4.setTable(HALFSIN256_DATA);
+      break;
+    case 12:  //square
+      osc1.setTable(TRIANGLE_DIST_CUBED_2048_DATA);
+      osc2.setTable(SAW2048_DATA);
+      osc3.setTable(SQUARE_ANALOGUE512_DATA);
+      osc4.setTable(SQUARE_NO_ALIAS_2048_DATA);
+      break;
+    case 13:  //square
+      osc1.setTable(SQUARE_ANALOGUE512_DATA);
+      osc2.setTable(PHASOR256_DATA);
+      osc3.setTable(SQUARE_ANALOGUE512_DATA);
+      osc4.setTable(PHASOR256_DATA);
+      break;
+    case 14:  //square
+      osc1.setTable(SAW2048_DATA);
+      osc2.setTable(HALFSIN256_DATA);
+      osc3.setTable(SQUARE_ANALOGUE512_DATA);
+      osc4.setTable(PHASOR256_DATA);
+      break;
+    case 15:  //square
+      osc1.setTable(SAW2048_DATA);
+      osc2.setTable(SQUARE_ANALOGUE512_DATA);
+      osc3.setTable(PHASOR256_DATA);
+      osc4.setTable(HALFSIN256_DATA);
+      break;
   }
+
+  //random waves
+  if (POSITION != 9) {
+    //EXT_ADV_IN adv输入判断 出现上升沿
+    if (digitalRead(11) == 1 && tmp_d11 == 0) {
+      tmp_d11 = 1;
+      param[8] = random(0, 1023);
+    }
+    if (digitalRead(11) == 0 && tmp_d11 == 1) {
+      tmp_d11 = 0;
+    }
+  }
+
+  //set freq
   byte note1 = (pgm_read_byte((param[0] >> 5) * 17));
   byte note2 = (pgm_read_byte((param[2] >> 5) * 17));
   byte note3 = (pgm_read_byte((param[4] >> 5) * 17));
@@ -143,6 +209,7 @@ void updateControl() {
   osc3.setFreq(freqv3);
   osc4.setFreq(freqv4);
 
+  //set gain
   gain1 = 32;
   gain2 = (param[3] + mozziAnalogRead(1)) >> 5;
   gain3 = (param[5] + mozziAnalogRead(2)) >> 5;
