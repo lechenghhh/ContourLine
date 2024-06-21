@@ -3,7 +3,7 @@
 #include <WaveShaper.h>
 #include <FixMath.h>
 
-#include <tables/sin512_int8.h>             // table for Oscils to play
+#include <tables/sin2048_int8.h>            // table for Oscils to play
 #include <tables/halfsinwindow512_uint8.h>  // sine table for oscillator
 #include <tables/square_no_alias512_int8.h>
 #include <tables/saw256_int8.h>
@@ -54,8 +54,8 @@
 #define BTN1_PIN 12  //
 #define BTN2_PIN 13  //
 
-Oscil<SIN512_NUM_CELLS, AUDIO_RATE> osc1(SIN512_DATA);
-Oscil<256, AUDIO_RATE> osc2(SIN512_DATA);
+Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc1(SIN2048_DATA);
+Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc2(SIN2048_DATA);
 
 WaveShaper<char> wsTanh(WAVESHAPE_TANH_DATA);                // WaveShaper
 WaveShaper<char> wsSigmod(WAVESHAPE_SIGMOID_DATA);           // WaveShaper
@@ -160,7 +160,7 @@ void updateControl() {
   //波形类型
   switch (WaveType) {
     default:
-      osc1.setTable(SIN512_DATA);
+      osc1.setTable(SIN2048_DATA);
       break;
     case 1:
       osc1.setTable(WAVESHAPE_TANH_DATA);
@@ -243,13 +243,15 @@ void updateControl() {
 }
 
 AudioOutput_t updateAudio() {
-  Q15n16 modulation = OP2Amt * osc2.next() >> 8;
-  char asig = MonoOutput::from8Bit(osc1.phMod(modulation));  // Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+  // return MonoOutput::fromNBit(16, (osc1.next() << 8));  //原始正弦波输出 无任何渐变
 
-  // if (RangeType == 0&&WaveTrig == 1) asig = MonoOutput::from8Bit(osc1.phMod(0));
+  Q15n16 modulation = OP2Amt * osc2.next() >> 8;
+  // char asig1 = MonoOutput::from8Bit(osc1.phMod(modulation));  //old fm
+  char asig1 = MonoOutput::fromNBit(16, osc1.phMod(modulation) << 8);  //Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
+  // return asig1 ;
 
   //波形渐变算法
-  byte asigShape = (byte)128 + ((asig * ((byte)128 + ShapeSelf + ShapeMod)) >> 8);
+  byte asigShape = (byte)128 + ((asig1 * ((byte)128 + ShapeSelf + ShapeMod)) >> 8);
   char wtasig = 0;
   switch (ShapeGradient) {
     default:
@@ -279,9 +281,9 @@ AudioOutput_t updateAudio() {
       break;
   }
   //压缩波形变化后的幅值
-  asig = wsComp.next(256u + wtasig);  //+ awaveshaped2
+  asig1 = wsComp.next(256u + wtasig);  //+ awaveshaped2
   //最终信号输出
-  return asig;
+  return asig1;
 }
 
 void loop() {
