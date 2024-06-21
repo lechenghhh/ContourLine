@@ -18,7 +18,7 @@
  4.         S                       Wave Shape Position         波形渐变量                    根据算法的选择进行渐变
  5.         F                       FM OP Freq                  算子频率                      频率区间可以改进到更为精确 也可以通过计算倍频调制出较为和谐的声音
  6.         A                       FM OP Amout                 算子幅度                      调频幅度
- 7.         T                       WaveType                    波型选择                      1-16 16种波形*
+ 7.         T                       WaveType                    波型选择                      1-16 16种波形*含噪音
  8.         C                       Wave Type Change Position   波型切换一次的序号量           0-7 当Range震荡范围处于0.1-10hz挡位时 该功能用于Reset震荡器起点(rst还有问题 等待修复)
 
 #### *8种算法(由mozzi提供)为:  
@@ -46,5 +46,5 @@ UPHASOR256
 HALFSIN256         
 COSPHASE256
 COS256     
-CHEBYSHEV_6TH_256  
+WHITENOISE8192_DATA
  

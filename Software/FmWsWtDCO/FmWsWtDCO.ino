@@ -19,6 +19,7 @@
 #include <tables/waveshape1_softclip_int8.h>
 #include <tables/waveshape_sigmoid_int8.h>
 #include <tables/saw_analogue512_int8.h>
+#include <tables/whitenoise8192_int8.h>
 
 #include <tables/waveshape_tanh_int8.h>               //wt
 #include <tables/waveshape_sigmoid_int8.h>            //wt
@@ -205,7 +206,7 @@ void updateControl() {
       osc1.setTable(COS256_DATA);
       break;
     case 15:
-      osc1.setTable(CHEBYSHEV_6TH_256_DATA);
+      osc1.setTable(WHITENOISE8192_DATA);
       break;
   }
 
