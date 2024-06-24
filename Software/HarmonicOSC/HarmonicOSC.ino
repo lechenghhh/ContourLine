@@ -193,10 +193,10 @@ void updateControl() {
   }
 
   //set freq
-  byte note1 = (pgm_read_byte((param[0] >> 5) * 17));
-  byte note2 = (pgm_read_byte((param[2] >> 5) * 17));
-  byte note3 = (pgm_read_byte((param[4] >> 5) * 17));
-  byte note4 = (pgm_read_byte((param[6] >> 5) * 17));
+  int note1 = 0;
+  int note2 = (param[2] >> 5) * 17;
+  int note3 = (param[4] >> 5) * 17;
+  int note4 = (param[6] >> 5) * 17;
 
   uint16_t oct_cv_val = mozziAnalogRead(V_OCT_PIN);
   int freq1 = param[0] >> 2;
@@ -204,7 +204,13 @@ void updateControl() {
   int freqv2 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note2]))));  //2nd
   int freqv3 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note3]))));  //3rd
   int freqv4 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note4]))));  //4th
-  osc1.setFreq(freqv1);                                                           // set the frequency
+
+  // Serial.print(" freqv1=");  //func param
+  // Serial.print(freqv1);      //func param
+  // Serial.print(" freqv2=");  //func param
+  // Serial.print(freqv2);      //func param
+
+  osc1.setFreq(freqv1);  // set the frequency
   osc2.setFreq(freqv2);
   osc3.setFreq(freqv3);
   osc4.setFreq(freqv4);
