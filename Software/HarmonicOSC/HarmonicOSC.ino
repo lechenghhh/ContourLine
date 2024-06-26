@@ -44,7 +44,7 @@ int gain5 = 255;
 void setup() {
   Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
   startMozzi(CONTROL_RATE);
-  initCtrl(4, 50, 13, 12, HIGH);  //初始化控制参数// 旋钮 旋钮修改启动范围 按钮1 按钮2
+  initCtrl(4, 50, 12, 13, HIGH);  //初始化控制参数// 旋钮 旋钮修改启动范围 按钮1 按钮2
   initLED(2, 3, 4, 5, 6, 7, 8);   //初始化Led引脚
   pinMode(11, INPUT);
   digitalWrite(11, LOW);
