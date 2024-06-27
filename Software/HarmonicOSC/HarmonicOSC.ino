@@ -199,14 +199,14 @@ void updateControl() {
   int note4 = (param[6] >> 5) * 17;
 
   uint16_t oct_cv_val = mozziAnalogRead(V_OCT_PIN);
-  int freq1 = param[0] >> 2;
+  int freq1 = (param[0] >> 2) + 64;
   int freqv1 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note1]))));  //ROOT
   int freqv2 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note2]))));  //2nd
   int freqv3 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note3]))));  //3rd
   int freqv4 = freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val + note4]))));  //4th
 
-  // Serial.print(" freqv1=");  //func param
-  // Serial.print(freqv1);      //func param
+  Serial.print(" freqv1=");  //func param
+  Serial.print(freqv1);      //func param
   // Serial.print(" freqv2=");  //func param
   // Serial.print(freqv2);      //func param
 
