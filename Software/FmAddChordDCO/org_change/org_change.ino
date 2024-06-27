@@ -351,7 +351,7 @@ void CHORD_setFreqs() {
   note4 = (pgm_read_byte(&(chord_table[chord][3])));
   note5 = (pgm_read_byte(&(chord_table[chord][0])));
   //OSC frequency knob
-  freq1 = freq_val / 4 + 64;
+  freq1 = freq_val / 4 + 65;
   //set wave
   if (p1_pot_val >= 1020) {  //inv knob max
     wave = (p2_pot_val / 128);
