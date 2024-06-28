@@ -17,9 +17,9 @@ https://github.com/PeteHaughie/MozziSketches/blob/main/Swarmduino
 
  0.         8位数码管显示字母        参数名词EN                   参数名词CN                    参数说明
  1.         F                       Freq                        频率调节                      暂时只能控制频率 无法控制音高
- 2.         S                       Span                        失谐程度                      失谐的间隔
+ 2.         D                       DetuneSpan                  失谐间隔程度                   失谐的间隔
  3.         T                       Tremolo                     微调每个振荡器的颤音频率        微调
- 4.         3                       TremoloShape                颤音波形选择                   8种波形
+ 4.         S                       TremoloShape                颤音波形选择                   8种波形
  5.         W                       WaveType                    波形                          8种波形                    
          
 
