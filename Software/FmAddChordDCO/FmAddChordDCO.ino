@@ -28,7 +28,7 @@
 #define LED_1_PIN 6
 #define LED_2_PIN 7
 #define LED_3_PIN 8
-#define FUNC_LENGTH 4  // menu length
+#define FUNC_LENGTH 5  // menu length
 
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc1(SIN2048_DATA);
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc2(SIN2048_DATA);
@@ -175,9 +175,9 @@ const static byte ADD_harm_table[8][256] PROGMEM = {
 };
 
 byte POSITION = 0;
-char function[FUNC_LENGTH][5] = { "Freq", "P1", "P2", "Mode" };
-short param[FUNC_LENGTH] = { 0, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_1, Led_2, Led_M };
+char function[FUNC_LENGTH][5] = { "Freq", "P1", "P2", "Mode", "WaveT" };
+short param[FUNC_LENGTH] = { 0, 0, 0, 0, 0 };
+bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_1, Led_2, Led_M, Led_W };
 
 void setup() {
   Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -227,18 +227,18 @@ void updateControl() {
   read_inputs();
   mode = param[3] >> 8;  // mode 0: FM mode 1: add, mode 2: chord
 
-  if (p1_pot_val >= 1020) {  //inv knob max
-    set_waves();
+  // if (p1_pot_val >= 1020) {  //inv knob max
+  set_waves();
+  // } else {
+  if (mode == 0) {
+    knob_freq = freq_pot_val;
+    FM_setFreqs(knob_freq);
+  } else if (mode == 1) {
+    CHORD_setFreqs();
   } else {
-    if (mode == 0) {
-      knob_freq = freq_pot_val;
-      FM_setFreqs(knob_freq);
-    } else if (mode == 1) {
-      CHORD_setFreqs();
-    } else {
-      ADD_setFreqs();
-    }
+    ADD_setFreqs();
   }
+  // }
 }
 
 void read_inputs() {
@@ -258,8 +258,9 @@ void read_inputs() {
 
 //
 void set_waves() {
-  switch (round(p2_pot_val / 200) - 1) {
-    case 0:  //sin
+  // switch (round(p2_pot_val / 200) - 1) {
+  switch (param[4] >> 7) {
+    default:  //sin
       osc1.setTable(SIN2048_DATA);
       osc2.setTable(SIN2048_DATA);
       osc3.setTable(SIN2048_DATA);
@@ -312,7 +313,6 @@ void set_waves() {
       osc6.setTable(SQUARE_NO_ALIAS_2048_DATA);
       osc7.setTable(SQUARE_NO_ALIAS_2048_DATA);
       osc8.setTable(SQUARE_NO_ALIAS_2048_DATA);
-      break;
       break;
   }
 }
@@ -513,8 +513,8 @@ void CHORD_setFreqs() {
 AudioOutput_t updateAudio() {
   if (mode == 0) {  //fm
     // return MonoOutput::fromNBit(16, (osc1.phMod(Q15n16(fm_deviation * osc2.next() >> 8)) / 2) * (gain_cv_val / 2));//old
-    return MonoOutput::fromNBit(16, osc1.phMod(fm_deviation * osc2.next() >> 8) << 8);//new
-  } else if (mode == 2) {  //add
+    return MonoOutput::fromNBit(16, osc1.phMod(fm_deviation * osc2.next() >> 8) << 8);  //new
+  } else if (mode == 2) {                                                               //add
     return MonoOutput::fromNBit(16, (osc1.next() * (pgm_read_byte(&(ADD_gain_table[0][ADD_gain]))) / 512 + osc2.next() * (pgm_read_byte(&(ADD_gain_table[1][ADD_gain]))) / 512 + osc3.next() * (pgm_read_byte(&(ADD_gain_table[2][ADD_gain]))) / 512 + osc4.next() * (pgm_read_byte(&(ADD_gain_table[3][ADD_gain]))) / 512 + osc5.next() * (pgm_read_byte(&(ADD_gain_table[4][ADD_gain]))) / 512 + osc6.next() * (pgm_read_byte(&(ADD_gain_table[5][ADD_gain]))) / 512 + osc7.next() * (pgm_read_byte(&(ADD_gain_table[6][ADD_gain]))) / 512 + osc8.next() * (pgm_read_byte(&(ADD_gain_table[7][ADD_gain]))) / 512) * (gain_cv_val / 4));
   } else {  //chord
     return MonoOutput::fromNBit(16, ((osc1.next() / 8 + osc2.next() / 8 + osc3.next() / 8 + osc4.next() / 8 + osc5.next() / 8 * inv_aply5) * gain_cv_val));
