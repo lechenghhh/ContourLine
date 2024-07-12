@@ -250,7 +250,7 @@ AudioOutput_t updateAudio() {
   // char asig1 = MonoOutput::from8Bit(osc1.phMod(modulation));  //old fm
   char asig1 = MonoOutput::fromNBit(16, osc1.phMod(modulation) << 8);  //Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
   // return asig1 ;
-
+  if (ShapeMod + ShapeSelf < 1) return asig1;
   //波形渐变算法
   byte asigShape = (byte)128 + ((asig1 * ((byte)128 + ShapeSelf + ShapeMod)) >> 8);
   char wtasig = 0;
