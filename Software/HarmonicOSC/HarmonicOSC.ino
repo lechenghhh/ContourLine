@@ -15,12 +15,12 @@
 #include "Module_LEDDisplay.h"
 #include "Module_Const.h"
 
-#define CONTROL_RATE 128
+#define CONTROL_RATE 256
 #define V_OCT_PIN A0
 #define P1_CV_PIN A1
 #define P2_CV_PIN A2
-// #define GAIN_CV_PIN A6
 #define MODE_CV_PIN A3
+#define GATE_IN_PIN 11
 
 #define FUNC_LENGTH 9  // menu length
 
@@ -78,7 +78,7 @@ void updateControl() {
   // Serial.print(gain3);            //func param
   // Serial.print(" gain4=");        //func param
   // Serial.print(gain4);            //func param
-  Serial.println("");  //func param
+  Serial.print("\n");  //func param
 
   //setwaves
   switch (param[8] >> 6) {
@@ -181,13 +181,12 @@ void updateControl() {
   }
 
   //random waves
-  if (POSITION != 9) {
-    //EXT_ADV_IN adv输入判断 出现上升沿
-    if (digitalRead(11) == 1 && tmp_d11 == 0) {
+  if (POSITION != 9) {  //EXT_ADV_IN adv输入判断 出现上升沿
+    if (digitalRead(GATE_IN_PIN) == 1 && tmp_d11 == 0) {
       tmp_d11 = 1;
-      param[8] = random(0, 1023);
+      param[8] = random(0, 1023);  //随机
     }
-    if (digitalRead(11) == 0 && tmp_d11 == 1) {
+    if (digitalRead(GATE_IN_PIN) == 0 && tmp_d11 == 1) {
       tmp_d11 = 0;
     }
   }
@@ -207,8 +206,6 @@ void updateControl() {
 
   Serial.print(" freqv1=");  //func param
   Serial.print(freqv1);      //func param
-  // Serial.print(" freqv2=");  //func param
-  // Serial.print(freqv2);      //func param
 
   osc1.setFreq(freqv1);  // set the frequency
   osc2.setFreq(freqv2);
