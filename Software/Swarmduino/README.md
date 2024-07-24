@@ -6,6 +6,7 @@ https://github.com/PeteHaughie/MozziSketches/blob/main/Swarmduino
 修改者: lecheng  
 说明: 该模块程序包含八个振荡器 每个振荡器有一定的失谐程度和周期性幅度调制;  
 在原有程序基础上增加了多种波形切换(原版只有方波),八个振荡器调幅周期可控;
+改版演示: https://www.bilibili.com/video/BV1Wm421g7nF
 
 ### 音频接口:  
 

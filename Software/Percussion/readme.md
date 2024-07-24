@@ -4,6 +4,7 @@
 ### base on Arduino nano 328p/168p
 #### for ContourLine 2.1  
 作者: lecheng  
+演示：https://www.bilibili.com/video/BV1vx4y1a7s7
 
 
 ### 音频接口:  

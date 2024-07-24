@@ -2,6 +2,7 @@
 avr-wt-synth (Glitch Synth)  
 原作者: stosem  
 程序适配: lecheng  
+改版演示：https://www.bilibili.com/video/BV1TZ421M7dw
 
 ### 修改适配:  
 

@@ -1,6 +1,7 @@
 程序改造自 <a href="https://github.com/Testbild-synth/HAGIWO_arduino_oscillator">HAGIWO_arduino_oscillator<a/>  
 原作者: Testbild-synth  
 程序适配: lecheng  
+改版演示：https://www.bilibili.com/video/BV1zy411h7ez
 
 ### 音频接口:  
 
