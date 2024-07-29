@@ -31,9 +31,9 @@ const unsigned int full = (int)(1000.f / playspeed) - 23;  // adjustment approx 
 
 #define FUNC_LENGTH 6  //功能列表长度
 int POSITION = 0;
-String function[FUNC_LENGTH] = { "start", "length", "freq", "circle", "BitCru", "SList" };
+String function[FUNC_LENGTH] = { "start", "length", "freq", "circle", "BitCru", "Select" };
 int param[FUNC_LENGTH] = { 0, 128, 256, 1, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_L, Led_F, Led_C, Led_B, Led_N };
+bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_L, Led_F, Led_C, Led_B, Led_S };
 
 Sample<SAMPLE_MAX_LENGTH, MOZZI_AUDIO_RATE> aSample(mysample1_DATA);
 EventDelay kTriggerDelay;

@@ -18,7 +18,7 @@
  3.         F                       Freq                        播放循环频率                  
  4.         C                       Circle                      是否循环                      默认开启
  4.         B                       BitCrush                    降采样                        默认不开启
- 5.         W                       SList                       采样列表                      4种采样                    
+ 5.         S                       Select                      采样选择                      4种采样                    
          
 ### 将自己的采样转化成数据
 https://github.com/gavD/arduino-drum-machine
