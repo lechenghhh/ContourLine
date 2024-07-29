@@ -36,7 +36,7 @@ const unsigned int full = (int)(1000.f / playspeed) - 23;  // adjustment approx 
 #define FUNC_LENGTH 6  //功能列表长度
 int POSITION = 0;
 String function[FUNC_LENGTH] = { "start", "length", "freq", "circle", "BitCru", "Select" };
-int param[FUNC_LENGTH] = { 0, 128, 256, 1, 0, 0 };
+int param[FUNC_LENGTH] = { 0, 128, 256, 768, 0, 0 };
 bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_L, Led_F, Led_C, Led_B, Led_S };
 
 Sample<SAMPLE_MAX_LENGTH, MOZZI_AUDIO_RATE> aSample(mysample1_DATA);
@@ -74,9 +74,9 @@ void updateControl() {
 
   //circle (loop)
   circle = param[3] >> 9;
-  if (circle == 0) {
+  if (circle == 1) {  //loop mode
     aSample.setLoopingOn();
-  } else {
+  } else {  //one shot mode
     aSample.setLoopingOff();
     if (digitalRead(GATE_PIN) != d11_Trig && d11_Trig == 0) {
       d11_Trig = 1;
@@ -87,7 +87,6 @@ void updateControl() {
       aSample.setLoopingOff();
     }
   }
-
 
   //Bit
   bit = 16 - (param[4] >> 7);
