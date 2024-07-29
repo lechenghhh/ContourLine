@@ -28,7 +28,9 @@ float speedchange = 0;
 unsigned int startPosition;
 unsigned int endPosition;
 unsigned int length;
+unsigned int circle;
 unsigned int bit;
+unsigned int d11_Trig;
 const unsigned int full = (int)(1000.f / playspeed) - 23;  // adjustment approx for MOZZI_CONTROL_RATE difference
 
 #define FUNC_LENGTH 6  //功能列表长度
@@ -69,6 +71,23 @@ void updateControl() {
   aSample.setEnd(endPosition);                                                           //设置播放尾
   playspeedmod = (float)param[2] / 256 + 0.01;                                           //播放速度
   aSample.setFreq(playspeedmod);                                                         //设置播放速度
+
+  //circle (loop)
+  circle = param[3] >> 9;
+  if (circle == 0) {
+    aSample.setLoopingOn();
+  } else {
+    aSample.setLoopingOff();
+    if (digitalRead(GATE_PIN) != d11_Trig && d11_Trig == 0) {
+      d11_Trig = 1;
+      aSample.setLoopingOn();  // kTriggerDelay.start();
+    }
+    if (digitalRead(GATE_PIN) != d11_Trig && d11_Trig == 1) {
+      d11_Trig = 0;
+      aSample.setLoopingOff();
+    }
+  }
+
 
   //Bit
   bit = 16 - (param[4] >> 7);
