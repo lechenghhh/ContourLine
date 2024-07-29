@@ -26,13 +26,14 @@ float speedchange = 0;
 unsigned int startPosition;
 unsigned int endPosition;
 unsigned int length;
+unsigned int bit;
 const unsigned int full = (int)(1000.f / playspeed) - 23;  // adjustment approx for MOZZI_CONTROL_RATE difference
 
-#define FUNC_LENGTH 5  //功能列表长度
+#define FUNC_LENGTH 6  //功能列表长度
 int POSITION = 0;
-String function[FUNC_LENGTH] = { "start", "length", "freq", "circle", "SList" };
-int param[FUNC_LENGTH] = { 0, 128, 256, 1, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_L, Led_F, Led_C, Led_N };
+String function[FUNC_LENGTH] = { "start", "length", "freq", "circle", "BitCru", "SList" };
+int param[FUNC_LENGTH] = { 0, 128, 256, 1, 0, 0 };
+bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_L, Led_F, Led_C, Led_B, Led_N };
 
 Sample<SAMPLE_MAX_LENGTH, MOZZI_AUDIO_RATE> aSample(mysample1_DATA);
 EventDelay kTriggerDelay;
@@ -67,7 +68,11 @@ void updateControl() {
   playspeedmod = (float)param[2] / 256 + 0.01;                                           //播放速度
   aSample.setFreq(playspeedmod);                                                         //设置播放速度
 
-  switch (param[4] >> 8) {
+  //Bit
+  bit = 16 - (param[4] >> 7);
+
+  //Sample List Select
+  switch (param[5] >> 8) {
     default:
       aSample.setTable(mysample1_DATA);
       break;
@@ -91,16 +96,14 @@ void updateControl() {
   // Serial.print("\n");
 }
 
-
 AudioOutput updateAudio() {
   // return MonoOutput::from8Bit(aSample.next());
-  return MonoOutput::fromNBit(16, aSample.next() << 8);
+  return MonoOutput::fromNBit(bit, aSample.next() << 8);
 }
 
 void loop() {
   audioHook();
 }
-
 
 // void exampleRand() {
 //   if (kTriggerDelay.ready()) {
