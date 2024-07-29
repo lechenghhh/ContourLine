@@ -1,6 +1,8 @@
 #include <Mozzi.h>
 #include <Sample.h>  // Sample template
 #include <EventDelay.h>
+#include <samples/bamboo/bamboo_02_4096_int8.h>  // Sample data
+#include <samples/bamboo/bamboo_03_4096_int8.h>  // Sample data
 #include <samples/bamboo/bamboo_04_4096_int8.h>  // Sample data
 #include "mysample1.h"
 
@@ -76,14 +78,14 @@ void updateControl() {
     default:
       aSample.setTable(mysample1_DATA);
       break;
-      // case 1:
-      // aSample.setTable(RAVEN_ARH_DATA);
-      // break;
-      // case 2:
-      // aSample.setTable(THUMB4_SOUNDDATA);
-      // break;
-      // case 3:
-      // aSample.setTable(ABOMB_DATA);
+    case 1:
+      aSample.setTable(BAMBOO_02_4096_DATA);
+      break;
+    case 2:
+      aSample.setTable(BAMBOO_03_4096_DATA);
+      break;
+    case 3:
+      aSample.setTable(BAMBOO_04_4096_DATA);
       break;
   }
 
