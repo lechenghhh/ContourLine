@@ -35,7 +35,7 @@ const unsigned int full = (int)(1000.f / playspeed) - 23;  // adjustment approx 
 
 #define FUNC_LENGTH 6  //功能列表长度
 int POSITION = 0;
-String function[FUNC_LENGTH] = { "start", "length", "freq", "circle", "BitCru", "Select" };
+String function[FUNC_LENGTH] = { "Pos", "Length", "Freq", "Circle", "BitCru", "Select" };
 int param[FUNC_LENGTH] = { 0, 128, 256, 768, 0, 0 };
 bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_L, Led_F, Led_C, Led_B, Led_S };
 
@@ -44,7 +44,7 @@ EventDelay kTriggerDelay;
 
 void setup() {
   Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
-  initCtrl(KONB_PIN, 16, BTN2_PIN, BTN1_PIN, HIGH);  //初始化控制参数// 旋钮 旋钮编辑状态启动范围 按钮1 按钮2
+  initCtrl(KONB_PIN, 16, BTN1_PIN, BTN2_PIN, HIGH);  //初始化控制参数// 旋钮 旋钮编辑状态启动范围 按钮1 按钮2
   initLED(2, 3, 4, 5, 6, 7, 8);
   startMozzi();
 
@@ -62,14 +62,14 @@ void updateControl() {
   Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
 
   // exampleRand();                                                      //old exp
-  startPosition = param[0] * 4;                                                          //播放头
+  startPosition = (param[0] + mozziAnalogRead(CV2_PIN)) * 4;                             //播放头
   if (startPosition > SAMPLE_MAX_LENGTH - 512) startPosition = SAMPLE_MAX_LENGTH - 512;  //播放头位置限制
   aSample.setStart(startPosition);                                                       //设置播放头
-  length = param[1] * 4 + 1;                                                             //长度
+  length = (param[1] + mozziAnalogRead(CV3_PIN)) * 4 + 1;                                //长度
   endPosition = startPosition + length;                                                  //播放尾由长度决定
   if (endPosition > SAMPLE_MAX_LENGTH) endPosition = SAMPLE_MAX_LENGTH;                  //播放长度超出限制
   aSample.setEnd(endPosition);                                                           //设置播放尾
-  playspeedmod = (float)param[2] / 256 + 0.01;                                           //播放速度
+  playspeedmod = (float)(param[2] + mozziAnalogRead(CV1_PIN)) / 256 + 0.01;              //播放速度
   aSample.setFreq(playspeedmod);                                                         //设置播放速度
 
   //circle (loop)
