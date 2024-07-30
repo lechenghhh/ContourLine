@@ -1,10 +1,13 @@
 #include <Mozzi.h>
 #include <Sample.h>  // Sample template
 #include <EventDelay.h>
-#include <samples/bamboo/bamboo_02_4096_int8.h>  // Sample data
-#include <samples/bamboo/bamboo_03_4096_int8.h>  // Sample data
-#include <samples/bamboo/bamboo_04_4096_int8.h>  // Sample data
-#include "mysample1.h"
+// #include <samples/bamboo/bamboo_02_4096_int8.h>  // Sample data
+// #include <samples/bamboo/bamboo_03_4096_int8.h>  // Sample data
+// #include <samples/bamboo/bamboo_04_4096_int8.h>  // Sample data
+#include "sample1.h"
+#include "sample2.h"
+#include "sample3.h"
+#include "sample4.h"
 
 /*lecheng的控制/显示模块封装*/
 #include "Module_LEDDisplay.h"
@@ -39,7 +42,7 @@ String function[FUNC_LENGTH] = { "Pos", "Length", "Freq", "Circle", "BitCru", "S
 int param[FUNC_LENGTH] = { 0, 128, 256, 768, 0, 0 };
 bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_L, Led_F, Led_C, Led_B, Led_S };
 
-Sample<SAMPLE_MAX_LENGTH, MOZZI_AUDIO_RATE> aSample(mysample1_DATA);
+Sample<SAMPLE_MAX_LENGTH, MOZZI_AUDIO_RATE> aSample(sample1_DATA);
 EventDelay kTriggerDelay;
 
 void setup() {
@@ -62,6 +65,7 @@ void updateControl() {
   Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
 
   // exampleRand();                                                      //old exp
+  //set position set length set freq
   startPosition = (param[0] + mozziAnalogRead(CV2_PIN)) * 4;                             //播放头
   if (startPosition > SAMPLE_MAX_LENGTH - 512) startPosition = SAMPLE_MAX_LENGTH - 512;  //播放头位置限制
   aSample.setStart(startPosition);                                                       //设置播放头
@@ -69,7 +73,7 @@ void updateControl() {
   endPosition = startPosition + length;                                                  //播放尾由长度决定
   if (endPosition > SAMPLE_MAX_LENGTH) endPosition = SAMPLE_MAX_LENGTH;                  //播放长度超出限制
   aSample.setEnd(endPosition);                                                           //设置播放尾
-  playspeedmod = (float)(param[2] + mozziAnalogRead(CV1_PIN)) / 256 + 0.01;              //播放速度
+  playspeedmod = (float)(param[2] + mozziAnalogRead(VOCT_PIN)) / 256 + 0.01;             //播放速度
   aSample.setFreq(playspeedmod);                                                         //设置播放速度
 
   //circle (loop)
@@ -94,16 +98,16 @@ void updateControl() {
   //Sample List Select
   switch (param[5] >> 8) {
     default:
-      aSample.setTable(mysample1_DATA);
+      aSample.setTable(sample1_DATA);
       break;
     case 1:
-      aSample.setTable(BAMBOO_02_4096_DATA);
+      aSample.setTable(sample2_DATA);
       break;
     case 2:
-      aSample.setTable(BAMBOO_03_4096_DATA);
+      aSample.setTable(sample3_DATA);
       break;
     case 3:
-      aSample.setTable(BAMBOO_04_4096_DATA);
+      aSample.setTable(sample4_DATA);
       break;
   }
 
