@@ -69,7 +69,7 @@ void updateControl() {
   startPosition = (param[0] + mozziAnalogRead(CV2_PIN)) * 4;                             //播放头
   if (startPosition > SAMPLE_MAX_LENGTH - 512) startPosition = SAMPLE_MAX_LENGTH - 512;  //播放头位置限制
   aSample.setStart(startPosition);                                                       //设置播放头
-  length = (param[1] + mozziAnalogRead(CV3_PIN)) * 4 + 1;                                //长度
+  length = (param[1] + mozziAnalogRead(CV3_PIN)) * 4 + 2;                                //长度
   endPosition = startPosition + length;                                                  //播放尾由长度决定
   if (endPosition > SAMPLE_MAX_LENGTH) endPosition = SAMPLE_MAX_LENGTH;                  //播放长度超出限制
   aSample.setEnd(endPosition);                                                           //设置播放尾
