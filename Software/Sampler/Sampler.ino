@@ -38,7 +38,7 @@ const unsigned int full = (int)(1000.f / playspeed) - 23;  // adjustment approx 
 
 #define FUNC_LENGTH 6  //功能列表长度
 int POSITION = 0;
-String function[FUNC_LENGTH] = { "Pos", "Length", "Freq", "Circle", "BitCru", "Select" };
+String function[FUNC_LENGTH] = { "Pos", "Length", "Freq", "Cycle", "BitCru", "Select" };
 int param[FUNC_LENGTH] = { 0, 128, 256, 768, 0, 0 };
 bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_L, Led_F, Led_C, Led_B, Led_S };
 
