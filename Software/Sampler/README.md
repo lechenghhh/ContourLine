@@ -13,12 +13,12 @@
 ### 显示参数:  
 
  0.         8位数码管显示字母        参数名词EN                   参数名词CN                    参数说明
- 1.         P                       PlayPosition                播放头位置                    
- 2.         L                       Length                      播放长度                      
- 3.         F                       Freq                        播放循环频率                  
+ 1.         F                       Freq                        播放循环频率                  
+ 2.         P                       PlayPosition                播放头位置                    
+ 3.         L                       Length                      播放长度                      
  4.         C                       Cycle                       是否循环                      默认开启 如果关闭 则通过d11接口进行触发
- 4.         B                       BitCrush                    降采样                        默认不开启
- 5.         S                       Select                      采样选择                      4种采样                    
+ 5.         B                       BitCrush                    降采样                        默认不开启
+ 6.         S                       Select                      采样选择                      4种采样                    
          
 ### 将自己的采样转化成数据
 

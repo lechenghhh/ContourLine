@@ -38,9 +38,9 @@ const unsigned int full = (int)(1000.f / playspeed) - 23;  // adjustment approx 
 
 #define FUNC_LENGTH 6  //功能列表长度
 int POSITION = 0;
-String function[FUNC_LENGTH] = { "Pos", "Length", "Freq", "Cycle", "BitCru", "Select" };
-int param[FUNC_LENGTH] = { 0, 128, 256, 768, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_L, Led_F, Led_C, Led_B, Led_S };
+String function[FUNC_LENGTH] = { "Freq", "Pos", "Length", "Cycle", "BitCru", "Select" };
+int param[FUNC_LENGTH] = { 256, 0, 128, 768, 0, 0 };
+bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_P, Led_L, Led_C, Led_B, Led_S };
 
 Sample<SAMPLE_MAX_LENGTH, MOZZI_AUDIO_RATE> aSample(sample1_DATA);
 EventDelay kTriggerDelay;
@@ -66,15 +66,16 @@ void updateControl() {
 
   // exampleRand();                                                      //old exp
   //set position set length set freq
-  startPosition = (param[0] + mozziAnalogRead(CV2_PIN)) * 4;                             //播放头
+  playspeedmod = (float)(param[0] + mozziAnalogRead(VOCT_PIN)) / 256 + 0.01;             //播放速度
+  aSample.setFreq(playspeedmod);                                                         //设置速度
+  startPosition = (param[1] + mozziAnalogRead(CV2_PIN)) * 4;                             //播放头
   if (startPosition > SAMPLE_MAX_LENGTH - 512) startPosition = SAMPLE_MAX_LENGTH - 512;  //播放头位置限制
   aSample.setStart(startPosition);                                                       //设置播放头
-  length = (param[1] + mozziAnalogRead(CV3_PIN)) * 4 + 2;                                //长度
+  length = (param[2] + mozziAnalogRead(CV3_PIN)) * 4 + 2;                                //长度
   endPosition = startPosition + length;                                                  //播放尾由长度决定
   if (endPosition > SAMPLE_MAX_LENGTH) endPosition = SAMPLE_MAX_LENGTH;                  //播放长度超出限制
   aSample.setEnd(endPosition);                                                           //设置播放尾
-  playspeedmod = (float)(param[2] + mozziAnalogRead(VOCT_PIN)) / 256 + 0.01;             //播放速度
-  aSample.setFreq(playspeedmod);                                                         //设置播放速度
+                                                                                         //设置播放速度
 
   //circle (loop)
   circle = param[3] >> 9;
