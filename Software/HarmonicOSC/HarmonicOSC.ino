@@ -31,8 +31,8 @@ Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc4(SIN2048_DATA);
 
 byte POSITION = 0;
 String function[FUNC_LENGTH] = { "Root", "RAmp", "Note2", "N2Amp", "Note3", "N3Amp", "Note4", "N4Amp", "WaveT" };
-int param[FUNC_LENGTH] = { 0, 1023, 0, 128, 0, 128, 0, 128, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_0, Led_1, Led_2, Led_3, Led_4, Led_5, Led_6, Led_7, Led_T };
+int param[FUNC_LENGTH] = { 0, 1023, 0, 127, 0, 127, 0, 127, 0 };
+bool* ledGroup[FUNC_LENGTH] = { Led_R, Led_1, Led_S, Led_2, Led_T, Led_3, Led_F, Led_4, Led_W };
 int tmp_d11 = 0;
 
 int gain1 = 255;  //0-255
