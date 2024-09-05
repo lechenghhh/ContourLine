@@ -1,6 +1,6 @@
-# 2xOP FM WaveShape DCO 
-### base on Arduino nano 328p
-#### for ContourLine 2.1  
+#### 2xOP FM WaveShape DCO 
+base on Arduino nano 328p
+for ContourLine 2.1  
 作者: lecheng  
 演示：https://www.bilibili.com/video/BV1Lq421P76q
 

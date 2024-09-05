@@ -1,6 +1,6 @@
-# Swarmduino
-### base on Arduino nano 328p
-#### for ContourLine 2.1  
+#### Swarmduino  
+base on Arduino nano 328p  
+for ContourLine 2.1  
 原作者: PeteHaughie  
 https://github.com/PeteHaughie/MozziSketches/blob/main/Swarmduino  
 修改者: lecheng  

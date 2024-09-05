@@ -1,6 +1,6 @@
 # Harmonic oscillator
-### base on Arduino nano 328p
-#### for ContourLine 2.1  
+base on Arduino nano 328p  
+for ContourLine 2.1  
 作者: lecheng  
 说明: 该振荡器用于模拟一些drone生成器的工作流 简单的振荡器 组合出和谐的音程关系 可以通过外部cv来控制每个音程振荡器的VCA  
 演示: https://www.bilibili.com/video/BV17y411B729  

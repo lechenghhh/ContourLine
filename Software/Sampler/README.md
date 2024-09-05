@@ -1,7 +1,7 @@
 # Sampler  
 一个可以循环播放采样的采样器 可以实现一些故障或者粒子的效果  
-### base on Arduino nano 328p
-#### for ContourLine 2.2   
+base on Arduino nano 328p  
+for ContourLine 2.2   
 原作者: lecheng  
 
 ### 音频接口:  

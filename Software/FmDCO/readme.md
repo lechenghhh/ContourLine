@@ -1,5 +1,5 @@
-# 2xOP FM DCO 
-### base on Arduino nano atmega168p
+2xOP FM DCO  
+base on Arduino nano atmega168p
 <a href="https://note.com/solder_state/n/nca6a1dec3921">https://note.com/solder_state/n/nca6a1dec3921</a>  
 原作者: Hagiwo  
 适配改进: lecheng  

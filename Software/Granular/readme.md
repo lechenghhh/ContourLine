@@ -1,7 +1,7 @@
-# 粒子合成器
-# Granular
-### base on Arduino nano 328p/168p
-#### for ContourLine 2.1  
+### 粒子合成器  
+Granular
+on Arduino nano 328p/168p
+for ContourLine 2.1  
 作者: lecheng  
 演示：https://www.bilibili.com/video/BV1ew4m117T7
 
