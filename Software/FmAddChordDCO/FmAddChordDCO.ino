@@ -50,7 +50,7 @@ uint16_t p2_pot_val = 0;
 uint16_t p2_cv_val = 0;
 int gain_cv_val = 0;
 uint8_t mode = 0;
-uint8_t mode_val = 0;
+uint8_t md_val = 0;
 
 ///additive variables
 int ADD_freq1 = 110;   //base freq of OSC1
@@ -234,9 +234,9 @@ void updateControl() {
     knob_freq = freq_pot_val;
     FM_setFreqs(knob_freq);
   } else if (mode == 1) {
-    CHORD_setFreqs();
-  } else {
     ADD_setFreqs();
+  } else {
+    CHORD_setFreqs();
   }
   // }
 }
@@ -253,7 +253,7 @@ void read_inputs() {
   p2_cv_val = mozziAnalogRead(P2_CV_PIN);
   // gain_cv_val = constrain(param[3] / 2, 0, 255);
   gain_cv_val = 255;
-  mode_val = mozziAnalogRead(MODE_CV_PIN) / 100;
+  md_val = mozziAnalogRead(MODE_CV_PIN) / 100;
 }
 
 //
@@ -334,9 +334,11 @@ void FM_setFreqs(Q16n16 freq2) {  //freq2=knob_freq
 
 void ADD_setFreqs() {
   //harmonics
-  ADD_harm_knob = constrain(((p2_pot_val + p2_cv_val) / 4), 0, 255);
+  // ADD_harm_knob = constrain(((p2_pot_val + p2_cv_val) / 4), 0, 255);
+  ADD_harm_knob = (p2_pot_val + p2_cv_val) / 16;
   //harmonics_gain
-  ADD_gain = constrain(((p1_cv_val + p1_pot_val) / 4), 0, 255);
+  // ADD_gain = constrain(((p1_cv_val + p1_pot_val) / 4), 0, 255);
+  ADD_gain = (p1_cv_val + p1_pot_val) / 16;
   //OSC frequency knob
   ADD_freq1 = freq_pot_val / 8;
   ADD_freqv1 = ADD_freq1 * pow(2, (pgm_read_float(&(voctpow[oct_cv_val]))));  // V/oct apply
@@ -514,7 +516,7 @@ AudioOutput_t updateAudio() {
   if (mode == 0) {  //fm
     // return MonoOutput::fromNBit(16, (osc1.phMod(Q15n16(fm_deviation * osc2.next() >> 8)) / 2) * (gain_cv_val / 2));//old
     return MonoOutput::fromNBit(16, osc1.phMod(fm_deviation * osc2.next() >> 8) << 8);  //new
-  } else if (mode == 2) {                                                               //add
+  } else if (mode == 1) {                                                               //add
     return MonoOutput::fromNBit(16, (osc1.next() * (pgm_read_byte(&(ADD_gain_table[0][ADD_gain]))) / 512 + osc2.next() * (pgm_read_byte(&(ADD_gain_table[1][ADD_gain]))) / 512 + osc3.next() * (pgm_read_byte(&(ADD_gain_table[2][ADD_gain]))) / 512 + osc4.next() * (pgm_read_byte(&(ADD_gain_table[3][ADD_gain]))) / 512 + osc5.next() * (pgm_read_byte(&(ADD_gain_table[4][ADD_gain]))) / 512 + osc6.next() * (pgm_read_byte(&(ADD_gain_table[5][ADD_gain]))) / 512 + osc7.next() * (pgm_read_byte(&(ADD_gain_table[6][ADD_gain]))) / 512 + osc8.next() * (pgm_read_byte(&(ADD_gain_table[7][ADD_gain]))) / 512) * (gain_cv_val / 4));
   } else {  //chord
     return MonoOutput::fromNBit(16, ((osc1.next() / 8 + osc2.next() / 8 + osc3.next() / 8 + osc4.next() / 8 + osc5.next() / 8 * inv_aply5) * gain_cv_val));
