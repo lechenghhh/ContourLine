@@ -6,9 +6,9 @@
 
 ### 音频接口:  
 
-0.          a0:Voct             a1:Shaper  
-1.          a2:FMFreq           a3:FMAmt  
-2.          d11:WaveTrig        d9d10:AudioOut    
+0.          	a1:Shaper  	a2:FMFreq  	a3:FMAmt  
+1.	a5:AMP		a6:Freq		a7:BitCrush
+2.	a0:Voct         	d11:WaveTrig        	d9d10:AudioOut
 
 ### 显示参数:  
 

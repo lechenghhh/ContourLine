@@ -73,17 +73,17 @@ String function[FUNC_LENGTH] = { "Pitch", "Range", "ShapeG", "WaveS", "OPFreq", 
 int param[FUNC_LENGTH] = { 0, 360, 0, 0, 0, 0, 0, 0 };
 bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_R, Led_G, Led_S, Led_F, Led_A, Led_T, Led_C };
 
-Q16n16 RangeType = 1;       //C0
+byte RangeType = 1;         //C0
 Q16n16 BaseFreq = 2143658;  //C0
 Q16n16 FreqRange = 5200;    //2OCT
-Q16n16 ShapeSelf = 0;       //当前波形手动选择标志
-Q16n16 ShapeGradient = 0;   //波形渐变算法
-Q16n16 ShapeMod = 0;        //波形渐变量调制量
+byte ShapeSelf = 0;         //当前波形手动选择标志
+byte ShapeGradient = 0;     //波形渐变算法
+int ShapeMod = 0;           //波形渐变量调制量
 Q16n16 OP1Freq, OP2Freq, OP2Amt, Pitch;
-Q16n16 WaveTrig = 0;
-Q16n16 WavePosition = 0;
-Q16n16 WaveType = 0;
-Q16n16 WaveChange = 0;
+int WaveTrig = 0;
+int WavePosition = 0;
+int WaveType = 0;
+int WaveChange = 0;
 
 void setup() {
   Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -247,9 +247,8 @@ AudioOutput_t updateAudio() {
   // return MonoOutput::fromNBit(16, (osc1.next() << 8));  //原始正弦波输出 无任何渐变
 
   Q15n16 modulation = OP2Amt * osc2.next() >> 8;
-  // char asig1 = MonoOutput::from8Bit(osc1.phMod(modulation));  //old fm
-  char asig1 = MonoOutput::fromNBit(16, osc1.phMod(modulation) << 8);  //Internally still only 8 bits, will be shifted up to 14 bits in HIFI mode
-  // return asig1 ;
+  char asig1 = osc1.phMod(modulation);
+  // return asig1;
   if (ShapeMod + ShapeSelf < 1) return asig1;
   //波形渐变算法
   byte asigShape = (byte)128 + ((asig1 * ((byte)128 + ShapeSelf + ShapeMod)) >> 8);
@@ -283,8 +282,9 @@ AudioOutput_t updateAudio() {
   }
   //压缩波形变化后的幅值
   asig1 = wsComp.next(256u + wtasig);  //+ awaveshaped2
-  //最终信号输出
-  return asig1;
+
+  return MonoOutput::fromNBit(16, asig1 << 8);  //最终信号输出
+  // return asig1; //最终信号输出
 }
 
 void loop() {
