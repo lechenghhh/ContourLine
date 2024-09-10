@@ -39,7 +39,7 @@
 #include "Module_Const.h"
 
 #define CONTROL_RATE 256           //Hz, powers of 2 are most reliable
-#define FUNC_LENGTH 8             //功能列表长度
+#define FUNC_LENGTH 9              //功能列表长度
 #define OSC_BASE1_FREQ 2143658     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
 #define OSC_BASE2_FREQ 4287316     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
 #define OSC_BASE3_FREQ 8574632     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
@@ -70,9 +70,9 @@ WaveShaper<char> wsCH6th(CHEBYSHEV_6TH_256_DATA);            // WaveShaper
 WaveShaper<int> wsComp(WAVESHAPE_COMPRESS_512_TO_488_DATA);  // to compress instead of dividing by 2 after adding signals
 
 Q16n16 POSITION = 0;
-String function[FUNC_LENGTH] = { "Pitch", "Range", "ShapeG", "WaveS", "OPFreq", "OPAmt", "WaveT", "WaveC" };
-int param[FUNC_LENGTH] = { 0, 360, 0, 0, 0, 0, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_R, Led_G, Led_S, Led_F, Led_A, Led_T, Led_C};
+String function[FUNC_LENGTH] = { "Pitch", "Range", "ShapeG", "WaveS", "OPFreq", "OPAmt", "Vol", "WaveT", "WaveC" };
+int param[FUNC_LENGTH] = { 0, 360, 0, 0, 0, 0, 0, 0, 0 };
+bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_R, Led_G, Led_S, Led_F, Led_A, Led_V, Led_T, Led_C };
 
 Q16n16 RangeType = 1;       //C0
 Q16n16 BaseFreq = 2143658;  //C0
@@ -86,6 +86,7 @@ Q16n16 WavePosition = 0;
 Q16n16 WaveType = 0;
 Q16n16 WaveChange = 0;
 Q16n16 Bit = 16;
+int AMP = 800;
 void setup() {
   Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
   initCtrl(KONB_PIN, 16, BTN1_PIN, BTN2_PIN, HIGH);  //初始化控制参数// 旋钮 旋钮编辑状态启动范围 按钮1 按钮2
@@ -143,8 +144,8 @@ void updateControl() {
   osc2.setFreq_Q16n16(OP2Freq);                                            //给算子设置频率
 
   //波形切换触发器
-  Q16n16 WaveSelect = param[6] >> 6;                         //波表  将1023分成16个波表类型
-  Q16n16 WaveChange = param[7] >> 6;                         //偏移量为16
+  Q16n16 WaveSelect = param[7] >> 6;                         //波表  将1023分成16个波表类型
+  Q16n16 WaveChange = param[8] >> 6;                         //偏移量为16
   if (digitalRead(GATE_PIN) != WaveTrig && WaveTrig == 0) {  //d13按钮可以用来测试
     WaveTrig = 1;
     if (RangeType == 0) {  //lfo模式 用于rst
@@ -210,7 +211,11 @@ void updateControl() {
       osc1.setTable(WHITENOISE8192_DATA);
       break;
   }
-  Bit = 16 - (mozziAnalogRead(5) >> 7);
+  Bit = 16 - (mozziAnalogRead(7) >> 7);
+  Bit = 16;
+
+  AMP = param[6];
+  AMP = AMP / 128;
 
   /*TEST LOG*/
   // Serial.print(" a0= ");
