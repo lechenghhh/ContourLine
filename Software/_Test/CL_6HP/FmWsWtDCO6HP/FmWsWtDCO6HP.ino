@@ -38,8 +38,8 @@
 #include "Module_Ctrl.h"
 #include "Module_Const.h"
 
-#define CONTROL_RATE 256           //Hz, powers of 2 are most reliable
-#define FUNC_LENGTH 9              //功能列表长度
+#define CONTROL_RATE 128           //Hz, powers of 2 are most reliable
+#define FUNC_LENGTH 10             //功能列表长度
 #define OSC_BASE1_FREQ 2143658     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
 #define OSC_BASE2_FREQ 4287316     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
 #define OSC_BASE3_FREQ 8574632     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
@@ -70,9 +70,9 @@ WaveShaper<char> wsCH6th(CHEBYSHEV_6TH_256_DATA);            // WaveShaper
 WaveShaper<int> wsComp(WAVESHAPE_COMPRESS_512_TO_488_DATA);  // to compress instead of dividing by 2 after adding signals
 
 int POSITION = 0;
-String function[FUNC_LENGTH] = { "Pitch", "Range", "ShapeG", "WaveS", "OPFreq", "OPAmt", "Vol", "WaveT", "WaveC" };
+String function[FUNC_LENGTH] = { "Pitch", "Range", "ShapeG", "WaveS", "OPFreq", "OPAmt", "Vol", "BitC", "WaveT", "WaveC" };
 int param[FUNC_LENGTH] = { 0, 360, 0, 0, 0, 0, 800, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_R, Led_G, Led_S, Led_F, Led_A, Led_V, Led_T, Led_C };
+bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_R, Led_G, Led_S, Led_F, Led_A, Led_V, Led_B, Led_T, Led_C };
 
 int RangeType = 1;          //C0
 Q16n16 BaseFreq = 2143658;  //C0
@@ -140,12 +140,12 @@ void updateControl() {
   // if (param[4] > 511) OP2Freq = (OP1Freq >> 8) * (param[4] * 2 - 1023);  //新版任意频率算法
 
   OP2Amt = ((OP2Freq >> 16) * (1 + param[5] + mozziAnalogRead(CV3_PIN)));  //op2amount
-  osc1.setFreq_Q16n16(OP1Freq + mozziAnalogRead(6));                       //A6用于引入一些音飘
+  osc1.setFreq_Q16n16(OP1Freq +  mozziAnalogRead(5) * 50000);                                //A6用于引入一些音飘
   osc2.setFreq_Q16n16(OP2Freq);                                            //给算子设置频率
 
   //波形切换触发器
-  int WaveSelect = param[7] >> 6;                            //波表  将1023分成16个波表类型
-  int WaveChange = param[8] >> 6;                            //偏移量为16
+  int WaveSelect = param[8] >> 6;                            //波表  将1023分成16个波表类型
+  int WaveChange = param[9] >> 6;                            //偏移量为16
   if (digitalRead(GATE_PIN) != WaveTrig && WaveTrig == 0) {  //d13按钮可以用来测试
     WaveTrig = 1;
     if (RangeType == 0) {  //lfo模式 用于rst
@@ -211,23 +211,30 @@ void updateControl() {
       osc1.setTable(WHITENOISE8192_DATA);
       break;
   }
-  Bit = 16 - (mozziAnalogRead(7) >> 7);
 
-  AMP = param[6] + mozziAnalogRead(5);
+  AMP = param[6] + mozziAnalogRead(6);
   if (AMP > 1023) AMP = 1023;
   AMP = AMP / 4;
 
+  Bit = 16 - (param[7] >> 7);
+
   /*TEST LOG*/
-  // Serial.print(" a0= ");
-  // Serial.print(mozziAnalogRead(0));
-  // Serial.print(" a1= ");
-  // Serial.print(mozziAnalogRead(1));
-  // Serial.print(" a2= ");
-  // Serial.print(mozziAnalogRead(2));
-  // Serial.print(" a3= ");
-  // Serial.print(mozziAnalogRead(3));
-  // Serial.print(" a4= ");
-  // Serial.println(mozziAnalogRead(4));
+  Serial.print(" a0=");
+  Serial.print(mozziAnalogRead(0));
+  Serial.print(" a1=");
+  Serial.print(mozziAnalogRead(1));
+  Serial.print(" a2=");
+  Serial.print(mozziAnalogRead(2));
+  Serial.print(" a3=");
+  Serial.print(mozziAnalogRead(3));
+  Serial.print(" a4=");
+  Serial.print(mozziAnalogRead(4));
+  Serial.print(" a5=");
+  Serial.print(mozziAnalogRead(5));
+  Serial.print(" a6=");
+  Serial.print(mozziAnalogRead(6));
+  Serial.print(" a7=");
+  Serial.print(mozziAnalogRead(7));
   // Serial.print(" d12= ");
   // Serial.println(digitalRead(12));
   // Serial.print(" d13= ");
@@ -250,6 +257,7 @@ void updateControl() {
   // Serial.println(ShapeGradient);
   // Serial.print("-Bit= ");
   // Serial.print(Bit);
+  Serial.print("\n");
 }
 
 AudioOutput_t updateAudio() {
@@ -258,7 +266,9 @@ AudioOutput_t updateAudio() {
   Q15n16 modulation = OP2Amt * osc2.next() >> 8;
   char asig1 = osc1.phMod(modulation);
   // return asig1;
-  if (ShapeMod + ShapeSelf < 1) return asig1 * AMP / 256;
+  if (ShapeMod + ShapeSelf < 1)
+    // return asig1 * AMP / 256;
+    return MonoOutput::fromNBit(Bit, asig1 * AMP);
   //波形渐变算法
   byte asigShape = (byte)128 + ((asig1 * ((byte)128 + ShapeSelf + ShapeMod)) >> 8);
   char wtasig = 0;
@@ -292,7 +302,7 @@ AudioOutput_t updateAudio() {
   //压缩波形变化后的幅值
   asig1 = wsComp.next(256u + wtasig);  //+ awaveshaped2
 
-  return MonoOutput::fromNBit(16, asig1 * AMP);  //最终信号输出
+  return MonoOutput::fromNBit(Bit, asig1 * AMP);  //最终信号输出
   // return asig1; //最终信号输出
 }
 
