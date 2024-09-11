@@ -56,7 +56,7 @@ void updateControl() {
   Q16n16 FMA = mozziAnalogRead(1) * 60000 * param[2] / 1024;  //调频乘数
 
   awDetune.setFreq(0.17f);
-  int tmpDetune = awDetune.next() * param[4] * 1000;
+  Q16n16 tmpDetune = awDetune.next() * param[4] * 1000;
 
   awOsc.setFreq_Q16n16((toneFreq + FMA + tmpDetune) * rangePitch);
   awSub.setFreq_Q16n16(toneFreq * rangePitch >> 2);
