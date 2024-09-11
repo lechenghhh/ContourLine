@@ -42,7 +42,7 @@ gerber/bom文件与清单已经提供 如果不了解如何下单pcb板 可以�
 [和谐音程振荡器](Software/HarmonicOSC/readme.md "Software/HarmonicOSC/")  
 [4组打击乐发生器](Software/Percussion/readme.md "Software/Percussion/")  
 [失谐振荡器](Software/Swarmduino/readme.md "Software/Swarmduino/")  
-
+更多>>
 
 ### 程序拓展说明：
 程序依赖于`mozzi library` 强大的声音合成库
