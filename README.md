@@ -34,15 +34,19 @@ gerber/bom文件与清单已经提供 如果不了解如何下单pcb板 可以�
 
 ### 现有程序实现:
 [Avr-wt-synth故障振荡器](Software/Avr-wt-synth/readme.md "Software/Avr-wt-synth/")  
+[虚拟模拟振荡器](Software/AnalogWave/readme.md "Software/AnalogWave/")  
+[可调制打击乐发生器](Software/DrumVoltrixion/readme.md "Software/DrumVoltrixion/")  
 [和弦/加法/FM振荡器](Software/FmAddChordDCO/readme.md "Software/FmAddChordDCO/")  
 [2算子FM振荡器`(入门)`](Software/FmDCO/readme.md "Software/FmDCO/")  
 [波型渐变2算子FM振荡器 `(推荐)`](Software/FmWsWtDCO/readme.md "Software/FmWsWtDCO/")  
 [波型渐变2算子FM振荡器`(lofi版)`](Software/FmWsWtDCOfor168p/readme.md "Software/FmWsWtDCOfor168p/")  
+[4组打击乐发生器](Software/FourTrekPerc/readme.md "Software/FourTrekPerc/")  
 [粒子合成器](Software/Granular/readme.md "Software/Granular/")  
 [和谐音程振荡器](Software/HarmonicOSC/readme.md "Software/HarmonicOSC/")  
-[4组打击乐发生器](Software/Percussion/readme.md "Software/Percussion/")  
+[风噪音发生器](Software/NoiseWindy/readme.md "Software/NoiseWindy/")  
+[采样器`(4K)`](Software/Sampler/readme.md "Software/Sampler/")  
 [失谐振荡器](Software/Swarmduino/readme.md "Software/Swarmduino/")  
-更多>>
+[更多>>](https://github.com/lechenghhh/ContourLine/tree/master/Software "https://github.com/lechenghhh/ContourLine/tree/master/Software")
 
 ### 程序拓展说明：
 程序依赖于`mozzi library` 强大的声音合成库
