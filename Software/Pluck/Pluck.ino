@@ -1,102 +1,108 @@
 #include <Mozzi.h>
 #include <Oscil.h>
-#include <WaveShaper.h>
+// #include <tables/cos2048_int8.h> //
+#include <tables/sin512_int8.h>                //sub
+#include <tables/triangle_analogue512_int8.h>  //TRIANGLE_ANALOGUE512_DATA
+#include <tables/square_analogue512_int8.h>    //SQUARE_ANALOGUE512_DATA
+#include <tables/saw_analogue512_int8.h>       //SAW_ANALOGUE512_DATA
 #include <FixMath.h>
+#include <ADSR.h>
 #include <LowPassFilter.h>
 
-//8192 16384
-#include <tables/whitenoise8192_int8.h>        //WHITENOISE8192_DATA
-#include <tables/noise_static_1_16384_int8.h>  //NOISE_STATIC_1_16384_DATA
-#include <tables/brownnoise8192_int8.h>        //BROWNNOISE8192_DATA
-#include <tables/pinknoise8192_int8.h>         //PINKNOISE8192_DATA
-
-
-/*lecheng的控制/显示模块封装*/
-#include "Module_LEDDisplay.h"
 #include "Module_Ctrl.h"
+
+#include "Module_LEDDisplay.h"
 #include "Module_Const.h"
+#define CONTROL_RATE 256  // Hz, powers of 2 are most reliable
 
-#define CONTROL_RATE 256  //Hz, powers of 2 are most reliable
-#define FUNC_LENGTH 5     //功能列表长度
+Oscil<512, AUDIO_RATE> awOsc(TRIANGLE_ANALOGUE512_DATA);
+Oscil<512, AUDIO_RATE> awDetune(SIN512_DATA);
+LowPassFilter lpf4;
+ADSR<AUDIO_RATE, AUDIO_RATE> env4;
 
-/*   引脚定义   */
-#define KONB_PIN 4   //
-#define VOCT_PIN 0   //
-#define CV1_PIN 1    //
-#define CV2_PIN 2    //
-#define CV3_PIN 3    //
-#define GATE_PIN 11  //
-#define BTN1_PIN 12  //
-#define BTN2_PIN 13  //
-
-Oscil<8192, AUDIO_RATE> wdosc1(WHITENOISE8192_DATA);
-
+const static int FUNC_LENGTH = 8;
 byte POSITION = 0;
-// String function[FUNC_LENGTH] = { "Pitch", "Cutof", "Reso", "Vol", "BitC", "Type" };
-int param[FUNC_LENGTH] = { 256, 128, 768, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_Q, Led_A, Led_B, Led_T };
-LowPassFilter lpf1;
-int amp = 0, bitcrush = 0;
+String function[FUNC_LENGTH] = { "Pitch", "range", "FMA", "fl", "Q", "Atk", "Decay", "WaveT" };
+int param[FUNC_LENGTH] = { 0, 240, 0, 1000, 256, 0, 128, 384 };
+bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_R, Led_F, Led_F, Led_Q, Led_A, Led_D, Led_T };
+byte tmp_d11 = 0;
+int voct = 500;
+byte subGain = 256;
+byte range = 1;
+byte WaveType = 0;
+Q16n16 toneFreq, pitch;
+int adsr4 = 0;
+byte trg4 = 0;
 
 void setup() {
-  Serial.begin(115200);                              //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
-  initCtrl(KONB_PIN, 16, BTN1_PIN, BTN2_PIN, HIGH);  //初始化控制参数// 旋钮 旋钮编辑状态启动范围 按钮1 按钮2
-  initLED(2, 3, 4, 5, 6, 7, 8);                      //初始化Led引脚
-
-  startMozzi(CONTROL_RATE);
+  Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
+  startMozzi();
+  initCtrl(4, 50, 12, 13, HIGH);  //初始化控制参数
+  initLED(2, 3, 4, 5, 6, 7, 8);   //初始化Led引脚
+  pinMode(11, INPUT_PULLUP);
 }
 
+//三个旋钮 Carrier A0  ModFreq A1  ModLV A3    C
 void updateControl() {
-  /*控制参数获取与显示逻辑*/
   POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
-  displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
-  if (getKnobEnable() == 0) displayLED(Led_NULL);  //如果处在非编辑状态 led将半灭显示
-  Serial.print(POSITION);                          //func param Log
-  Serial.print("func=");                           //func param Log
-  Serial.print(param[POSITION]);                   //func param Log
+  displayLED(ledGroup[POSITION]);                  //display  //用以展示控制
 
-  wdosc1.setFreq(440);
-  int cutof = param[0] + mozziAnalogRead(0);
-  if (cutof > 1024) cutof = 1024;
-  int reso = param[1] + mozziAnalogRead(1);
-  if (reso > 1024) reso = 1024;
-  lpf1.setCutoffFreqAndResonance(cutof / 6, reso / 4);
+  Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
+
+  //VOCT A7  CV-Freq A4  CV-LV A5
+  voct = mozziAnalogRead(0);  //由于cltest的voct接口阻抗问题 这里需要乘以一个系数 调谐才比较准确
+  pitch = param[0];
+  toneFreq = (2143658 + pitch * 5200) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
+  range = param[1] >> 6;
+  int rangePitch = (range + 1) / 2;
+  Q16n16 FMA = mozziAnalogRead(1) * 60000 * param[2] / 1024;  //调频乘数
+  awOsc.setFreq_Q16n16((toneFreq + FMA) * rangePitch);
 
 
-  amp = param[2] + mozziAnalogRead(2);
-  if (amp > 1024) amp = 1024;
-  amp = amp / 128;
-
-  bitcrush = param[3] + mozziAnalogRead(3);
-  if (bitcrush > 1024) bitcrush = 1024;
-  bitcrush = bitcrush / 200;
-
-  switch (param[5] / 256) {
+  WaveType = param[5] / 256;
+  switch (WaveType) {
     default:
-      wdosc1.setTable(WHITENOISE8192_DATA);
+      awOsc.setTable(SIN512_DATA);
       break;
-    // case 1:
-    //   wdosc1.setTable(NOISE_STATIC_1_16384_DATA);
-    //   break;
-    case 2:
-      wdosc1.setTable(BROWNNOISE8192_DATA);
+    case 1:
+      awOsc.setTable(TRIANGLE_ANALOGUE512_DATA);
+      break;
+    case 2:  //2345
+      awOsc.setTable(SQUARE_ANALOGUE512_DATA);
       break;
     case 3:
-      wdosc1.setTable(PINKNOISE8192_DATA);
-
+      awOsc.setTable(SAW_ANALOGUE512_DATA);
       break;
   }
-  // Serial.print("-WaveChange= ");
-  // Serial.println(WaveChange);
-  // Serial.print("-ShapeGradient-");
-  // Serial.println(ShapeGradient);
-  Serial.println("\n");
+  env4.setLevels(127, 128, 0, 0);
+  // env4.setTimes(0, 8, 0, 8);
+  env4.setTimes(param[5] / 128, param[6] / 64, 0, param[6] / 64);
+  env4.update();
+
+  if (digitalRead(11) == 1 && trg4 == 0) {
+    trg4 = 1;
+    env4.noteOn();
+    env4.noteOff();
+  }
+  if (digitalRead(11) == 0 && trg4 == 1) {
+    trg4 = 0;
+  }
+  adsr4 = env4.next() + (param[3] - 800) / 5;
+
+  // lpf4.setCutoffFreqAndResonance(param[3]/4 / 6, 127);
+  lpf4.setCutoffFreqAndResonance(adsr4 / 6, param[4] / 8);
+  // Serial.print("-subGain-");
+  // Serial.print(subGain);
+  // Serial.print("-WaveType-");
+  // Serial.print(WaveType);
+  // Serial.println(FMA);
 }
 
-AudioOutput updateAudio() {
-  // return MonoOutput::fromNBit(16, (wdosc1.next() << 8));  //原始正弦波输出 无任何渐变
-  return MonoOutput::fromNBit(16 - bitcrush, (lpf1.next(wdosc1.next()) << amp));  //原始正弦波输出 无任何渐变
+
+AudioOutput_t updateAudio() {
+  return MonoOutput::fromNBit(16, (lpf4.next(awOsc.next()) << 8));  //new:hifi
+  // return MonoOutput::fromNBit(16, (lpf4.next(awOsc.next()<< 8) ));  //new:hifi
 }
 
 void loop() {
