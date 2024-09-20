@@ -57,6 +57,14 @@ int ADD_freq1 = 110;   //base freq of OSC1
 int ADD_freqv1 = 440;  // freq1 apply voct
 byte ADD_gain = 127;
 uint8_t ADD_harm_knob = 0;
+int g1;
+int g2;
+int g3;
+int g4;
+int g5;
+int g6;
+int g7;
+int g8;
 ////////
 
 ////chord variables
@@ -351,6 +359,15 @@ void ADD_setFreqs() {
   osc6.setFreq(ADD_freqv1 * (pgm_read_byte(&(ADD_harm_table[4][ADD_harm_knob]))));
   osc7.setFreq(ADD_freqv1 * (pgm_read_byte(&(ADD_harm_table[5][ADD_harm_knob]))));
   osc8.setFreq(ADD_freqv1 * (pgm_read_byte(&(ADD_harm_table[6][ADD_harm_knob]))));
+
+  g1 = (pgm_read_byte(&(ADD_gain_table[0][ADD_gain])) / 8);
+  g2 = (pgm_read_byte(&(ADD_gain_table[1][ADD_gain])) / 8);
+  g3 = (pgm_read_byte(&(ADD_gain_table[2][ADD_gain])) / 8);
+  g4 = (pgm_read_byte(&(ADD_gain_table[3][ADD_gain])) / 8);
+  g5 = (pgm_read_byte(&(ADD_gain_table[4][ADD_gain])) / 8);
+  g6 = (pgm_read_byte(&(ADD_gain_table[5][ADD_gain])) / 8);
+  g7 = (pgm_read_byte(&(ADD_gain_table[6][ADD_gain])) / 8);
+  g8 = (pgm_read_byte(&(ADD_gain_table[7][ADD_gain])) / 8);
 }
 
 void CHORD_setFreqs() {
@@ -516,8 +533,16 @@ AudioOutput_t updateAudio() {
   if (mode == 0) {  //fm
     // return MonoOutput::fromNBit(16, (osc1.phMod(Q15n16(fm_deviation * osc2.next() >> 8)) / 2) * (gain_cv_val / 2));//old
     return MonoOutput::fromNBit(16, osc1.phMod(fm_deviation * osc2.next() >> 8) << 8);  //new
-  } else if (mode == 1) {                                                               //add
-    return MonoOutput::fromNBit(16, (osc1.next() * (pgm_read_byte(&(ADD_gain_table[0][ADD_gain]))) / 512 + osc2.next() * (pgm_read_byte(&(ADD_gain_table[1][ADD_gain]))) / 512 + osc3.next() * (pgm_read_byte(&(ADD_gain_table[2][ADD_gain]))) / 512 + osc4.next() * (pgm_read_byte(&(ADD_gain_table[3][ADD_gain]))) / 512 + osc5.next() * (pgm_read_byte(&(ADD_gain_table[4][ADD_gain]))) / 512 + osc6.next() * (pgm_read_byte(&(ADD_gain_table[5][ADD_gain]))) / 512 + osc7.next() * (pgm_read_byte(&(ADD_gain_table[6][ADD_gain]))) / 512 + osc8.next() * (pgm_read_byte(&(ADD_gain_table[7][ADD_gain]))) / 512) * (gain_cv_val / 4));
+  } else if (mode == 1) {  //add   // return MonoOutput::fromNBit(16, (osc1.next() * (pgm_read_byte(&(ADD_gain_table[0][ADD_gain]))) / 512 + osc2.next() * (pgm_read_byte(&(ADD_gain_table[1][ADD_gain]))) / 512 + osc3.next() * (pgm_read_byte(&(ADD_gain_table[2][ADD_gain]))) / 512 + osc4.next() * (pgm_read_byte(&(ADD_gain_table[3][ADD_gain]))) / 512 + osc5.next() * (pgm_read_byte(&(ADD_gain_table[4][ADD_gain]))) / 512 + osc6.next() * (pgm_read_byte(&(ADD_gain_table[5][ADD_gain]))) / 512 + osc7.next() * (pgm_read_byte(&(ADD_gain_table[6][ADD_gain]))) / 512 + osc8.next() * (pgm_read_byte(&(ADD_gain_table[7][ADD_gain]))) / 512) * (gain_cv_val / 4));
+    int as1 = osc1.next() * g1;
+    int as2 = osc2.next() * g2;
+    int as3 = osc3.next() * g3;
+    int as4 = osc4.next() * g4;
+    int as5 = osc5.next() * g5;
+    int as6 = osc6.next() * g6;
+    int as7 = osc7.next() * g7;
+    int as8 = osc8.next() * g8;
+    return MonoOutput::fromNBit(16, (as1 + as2 + as3 + as4 + as5 + as6 + as7 + as8));
   } else {  //chord
     return MonoOutput::fromNBit(16, ((osc1.next() / 8 + osc2.next() / 8 + osc3.next() / 8 + osc4.next() / 8 + osc5.next() / 8 * inv_aply5) * gain_cv_val));
   }
