@@ -36,11 +36,11 @@ unsigned int bit;
 unsigned int d11_Trig;
 const unsigned int full = (int)(1000.f / playspeed) - 23;  // adjustment approx for MOZZI_CONTROL_RATE difference
 
-#define FUNC_LENGTH 6  //功能列表长度
+#define PARAM_LENGTH 6  //功能列表长度
 int POSITION = 0;
-String function[FUNC_LENGTH] = { "Freq", "Pos", "Length", "Cycle", "BitCru", "Select" };
-int param[FUNC_LENGTH] = { 256, 0, 128, 768, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_P, Led_L, Led_C, Led_B, Led_S };
+String param_name[PARAM_LENGTH] = { "Freq", "Pos", "Length", "Cycle", "BitCru", "Select" };
+int param[PARAM_LENGTH] = { 256, 0, 128, 768, 0, 0 };
+bool* ledGroup[PARAM_LENGTH] = { Led_F, Led_P, Led_L, Led_C, Led_B, Led_S };
 
 Sample<SAMPLE_MAX_LENGTH, MOZZI_AUDIO_RATE> aSample(sample1_DATA);
 EventDelay kTriggerDelay;
@@ -58,11 +58,11 @@ void setup() {
 
 void updateControl() {
   /*控制参数获取与显示逻辑*/
-  POSITION = getPostition(POSITION, FUNC_LENGTH);                   //获取菜单下标
+  POSITION = getPostition(POSITION, PARAM_LENGTH);                   //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);                      //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                                   //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);                   //如果处在非编辑状态 led将半灭显示
-  Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
+  Serial.println(POSITION + param_name[POSITION] + param[POSITION]);  //func param Log
 
   // exampleRand();                                                      //old exp
   //set position set length set freq

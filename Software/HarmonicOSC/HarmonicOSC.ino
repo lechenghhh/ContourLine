@@ -22,7 +22,7 @@
 #define MODE_CV_PIN A3
 #define GATE_IN_PIN 11
 
-#define FUNC_LENGTH 9  // menu length
+#define PARAM_LENGTH 9  // menu length
 
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc1(SIN2048_DATA);
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc2(SIN2048_DATA);
@@ -30,9 +30,9 @@ Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc3(SIN2048_DATA);
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc4(SIN2048_DATA);
 
 byte POSITION = 0;
-String function[FUNC_LENGTH] = { "Root", "RAmp", "Note2", "N2Amp", "Note3", "N3Amp", "Note4", "N4Amp", "WaveT" };
-int param[FUNC_LENGTH] = { 0, 1023, 0, 127, 0, 127, 0, 127, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_R, Led_1, Led_S, Led_2, Led_T, Led_3, Led_F, Led_4, Led_W };
+String param_name[PARAM_LENGTH] = { "Root", "RAmp", "Note2", "N2Amp", "Note3", "N3Amp", "Note4", "N4Amp", "WaveT" };
+int param[PARAM_LENGTH] = { 0, 1023, 0, 127, 0, 127, 0, 127, 0 };
+bool* ledGroup[PARAM_LENGTH] = { Led_R, Led_1, Led_S, Led_2, Led_T, Led_3, Led_F, Led_4, Led_W };
 int tmp_d11 = 0;
 
 int gain1 = 255;  //0-255
@@ -52,7 +52,7 @@ void setup() {
 
 void updateControl() {
   //control & display
-  POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
+  POSITION = getPostition(POSITION, PARAM_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);  //如果处在非编辑状态 led将半灭显示

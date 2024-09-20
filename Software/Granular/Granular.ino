@@ -82,10 +82,10 @@ const int8_t* tables[NUM_TABLES] = {  // watch out - tables are const (but you c
 };
 byte gains[NUM_PLAYERS];  // gains for each sample player
 
-#define FUNC_LENGTH 5  //功能列表长度
+#define PARAM_LENGTH 5  //功能列表长度
 int POSITION = 0;
-String function[FUNC_LENGTH] = { "freq", "dens", "diffu", "fb", "level" };
-int param[FUNC_LENGTH] = { 512, 512, 0, 1, 128 };
+String param_name[PARAM_LENGTH] = { "freq", "dens", "diffu", "fb", "level" };
+int param[PARAM_LENGTH] = { 512, 512, 0, 1, 128 };
 
 void setup() {
   Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -110,13 +110,13 @@ void setup() {
 
 void updateControl() {
 
-  POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
+  POSITION = getPostition(POSITION, PARAM_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //并获取修改成功的旋钮值
   digitalWrite(POSITION + 2, LOW);                 //简易参数显示
   digitalWrite(POSITION + 1, HIGH);                //减少调用次数
   digitalWrite(POSITION + 3, HIGH);                //优化性能
 
-  // Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
+  // Serial.println(POSITION + param_name[POSITION] + param[POSITION]);  //func param Log
 
   Serial.print("Func ");            //func param Log
   Serial.println(POSITION);         //func param Log

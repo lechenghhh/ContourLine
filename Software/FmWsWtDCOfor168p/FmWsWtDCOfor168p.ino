@@ -15,7 +15,7 @@
 #include "Module_Const.h"
 
 #define CONTROL_RATE 128  // Hz, powers of 2 are most reliable
-#define FUNC_LENGTH 6     // menu length
+#define PARAM_LENGTH 6     // menu length
 
 Oscil<256, AUDIO_RATE> aTanh(WAVESHAPE_TANH_DATA);
 Oscil<256, AUDIO_RATE> aSin1(SIN256_DATA);
@@ -34,8 +34,8 @@ Oscil<256, CONTROL_RATE> kModIndex(SIN256_DATA);
 
 int voct = 500;
 byte POSITION = 0;
-char function[FUNC_LENGTH][3] = { "PTC", "rg", "WS", "FMF", "FMA", "WT" };
-short param[FUNC_LENGTH] = { 1, 400, 2, 3, 0 };
+char param_name[PARAM_LENGTH][3] = { "PTC", "rg", "WS", "FMF", "FMA", "WT" };
+short param[PARAM_LENGTH] = { 1, 400, 2, 3, 0 };
 
 Q16n16 FMA;
 byte Wave;
@@ -65,7 +65,7 @@ void setup() {
 
 //三个旋钮 Carrier A0  ModFreq A1  ModLV A3    C
 void updateControl() {
-  POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
+  POSITION = getPostition(POSITION, PARAM_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
 
   for (byte i = 2; i < 9; i++)  //display  //简易参数展示

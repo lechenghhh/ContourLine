@@ -47,10 +47,10 @@ int PWMPin = 9;
 
 char v1, v2, v3, v4, v5, v6, v7, v8;
 byte POSITION = 0;
-#define FUNC_LENGTH 5
-char function[FUNC_LENGTH][6] = { "Freq", "Detune", "Tremo", "TSape", "WaveT" };
-int param[FUNC_LENGTH] = { 0, 1, 32, 3, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_D, Led_T, Led_S, Led_W };
+#define PARAM_LENGTH 5
+char param_name[PARAM_LENGTH][6] = { "Freq", "Detune", "Tremo", "TSape", "WaveT" };
+int param[PARAM_LENGTH] = { 0, 1, 32, 3, 0 };
+bool* ledGroup[PARAM_LENGTH] = { Led_F, Led_D, Led_T, Led_S, Led_W };
 
 void setup() {
   Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -73,7 +73,7 @@ void setup() {
 }
 
 void updateControl() {
-  POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
+  POSITION = getPostition(POSITION, PARAM_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);  //如果处在非编辑状态 led将半灭显示

@@ -90,7 +90,7 @@ float note_freq[61] = { 65.41, 69.30, 73.42, 77.78, 82.41, 87.31, 92.50, 98.00, 
 #define OBER_CV A2    // Ober CV                (obertone freq / pitch)
 #define GLITCH_CV A3  // Glitch amount CV       (FM intensity / glitch)
 
-#define FUNC_LENGTH 5  // menu length
+#define PARAM_LENGTH 5  // menu length
 
 /* variables (may be changed during the work)
  *  
@@ -138,12 +138,12 @@ typedef struct tFM {
 } tFM;
 
 byte POSITION = 0;
-char function[FUNC_LENGTH][5] = { "pitch", "wt", "mod", "ober", "glitch" };
-bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_W, Led_M, Led_O, Led_G };
+char param_name[PARAM_LENGTH][5] = { "pitch", "wt", "mod", "ober", "glitch" };
+bool* ledGroup[PARAM_LENGTH] = { Led_P, Led_W, Led_M, Led_O, Led_G };
 
-short param[FUNC_LENGTH] = { 1, 0, 0, 0, 0 };
+short param[PARAM_LENGTH] = { 1, 0, 0, 0, 0 };
 
-// use this function only on debug! it has delay!
+// use this param_name only on debug! it has delay!
 void blink_led(int led) {
   digitalWrite(led, HIGH);
   delay(100);
@@ -242,7 +242,7 @@ void mySetOsc(tFM fmSnd) {
 
 // Mozzi Update Controls
 void updateControl() {
-  POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
+  POSITION = getPostition(POSITION, PARAM_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
 

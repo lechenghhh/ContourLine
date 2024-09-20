@@ -38,7 +38,7 @@
 #include "Module_Const.h"
 
 #define CONTROL_RATE 256           //Hz, powers of 2 are most reliable
-#define FUNC_LENGTH 8              //功能列表长度
+#define PARAM_LENGTH 8              //功能列表长度
 #define OSC_BASE1_FREQ 2143658     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
 #define OSC_BASE2_FREQ 4287316     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
 #define OSC_BASE3_FREQ 8574632     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
@@ -69,9 +69,9 @@ WaveShaper<char> wsCH6th(CHEBYSHEV_6TH_256_DATA);            // WaveShaper
 WaveShaper<int> wsComp(WAVESHAPE_COMPRESS_512_TO_488_DATA);  // to compress instead of dividing by 2 after adding signals
 
 Q16n16 POSITION = 0;
-String function[FUNC_LENGTH] = { "Pitch", "Range", "ShapeG", "WaveS", "OPFreq", "OPAmt", "WaveT", "WaveC" };
-int param[FUNC_LENGTH] = { 0, 360, 0, 0, 0, 0, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_R, Led_G, Led_S, Led_F, Led_A, Led_T, Led_C };
+String param_name[PARAM_LENGTH] = { "Pitch", "Range", "ShapeG", "WaveS", "OPFreq", "OPAmt", "WaveT", "WaveC" };
+int param[PARAM_LENGTH] = { 0, 360, 0, 0, 0, 0, 0, 0 };
+bool* ledGroup[PARAM_LENGTH] = { Led_P, Led_R, Led_G, Led_S, Led_F, Led_A, Led_T, Led_C };
 
 byte RangeType = 1;         //C0
 Q16n16 BaseFreq = 2143658;  //C0
@@ -95,11 +95,11 @@ void setup() {
 
 void updateControl() {
   /*控制参数获取与显示逻辑*/
-  POSITION = getPostition(POSITION, FUNC_LENGTH);                   //获取菜单下标
+  POSITION = getPostition(POSITION, PARAM_LENGTH);                   //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);                      //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                                   //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);                   //如果处在非编辑状态 led将半灭显示
-  Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
+  Serial.println(POSITION + param_name[POSITION] + param[POSITION]);  //func param Log
 
   /*音高 伏每八度*/
   Pitch = param[0];                                                                                            //音高旋钮参数

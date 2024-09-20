@@ -17,7 +17,7 @@
 #include "Module_Const.h"
 
 #define CONTROL_RATE 256  //Hz, powers of 2 are most reliable
-#define FUNC_LENGTH 8     //功能列表长度
+#define PARAM_LENGTH 8     //功能列表长度
 
 /*   引脚定义   */
 #define KONB_PIN 4   //
@@ -30,9 +30,9 @@
 #define BTN2_PIN 13  //
 
 Q16n16 POSITION = 0;
-String function[FUNC_LENGTH] = { "kick", "tone", "clap", "freq", "hat", "decay", "rim", "pitch" };
-int param[FUNC_LENGTH] = { 768, 512, 768, 700, 768, 256, 768, 512 };
-bool* ledGroup[FUNC_LENGTH] = { Led_K, Led_T, Led_C, Led_F, Led_H, Led_D, Led_R, Led_P };
+String param_name[PARAM_LENGTH] = { "kick", "tone", "clap", "freq", "hat", "decay", "rim", "pitch" };
+int param[PARAM_LENGTH] = { 768, 512, 768, 700, 768, 256, 768, 512 };
+bool* ledGroup[PARAM_LENGTH] = { Led_K, Led_T, Led_C, Led_F, Led_H, Led_D, Led_R, Led_P };
 
 //kick
 Oscil<TRIANGLE512_NUM_CELLS, AUDIO_RATE> osc1(TRIANGLE512_DATA);
@@ -74,11 +74,11 @@ void setup() {
 //三个旋钮 Carrier A0  ModFreq A1  ModLV A3    C
 void updateControl() {
 
-  POSITION = getPostition(POSITION, FUNC_LENGTH);                   //获取菜单下标
+  POSITION = getPostition(POSITION, PARAM_LENGTH);                   //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);                      //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                                   //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);                   //如果处在非编辑状态 led将半灭显示
-  Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
+  Serial.println(POSITION + param_name[POSITION] + param[POSITION]);  //func param Log
 
   kick();
   clap();

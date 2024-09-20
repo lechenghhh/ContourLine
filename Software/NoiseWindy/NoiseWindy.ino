@@ -17,7 +17,7 @@
 #include "Module_Const.h"
 
 #define CONTROL_RATE 256  //Hz, powers of 2 are most reliable
-#define FUNC_LENGTH 5     //功能列表长度
+#define PARAM_LENGTH 5     //功能列表长度
 
 /*   引脚定义   */
 #define KONB_PIN 4   //
@@ -32,9 +32,9 @@
 Oscil<8192, AUDIO_RATE> wdosc1(WHITENOISE8192_DATA);
 
 byte POSITION = 0;
-// String function[FUNC_LENGTH] = { "Pitch", "Cutof", "Reso", "Vol", "BitC", "Type" };
-int param[FUNC_LENGTH] = { 256, 128, 768, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_Q, Led_A, Led_B, Led_T };
+// String param_name[PARAM_LENGTH] = { "Pitch", "Cutof", "Reso", "Vol", "BitC", "Type" };
+int param[PARAM_LENGTH] = { 256, 128, 768, 0, 0 };
+bool* ledGroup[PARAM_LENGTH] = { Led_F, Led_Q, Led_A, Led_B, Led_T };
 LowPassFilter lpf1;
 int amp = 0, bitcrush = 0;
 
@@ -48,7 +48,7 @@ void setup() {
 
 void updateControl() {
   /*控制参数获取与显示逻辑*/
-  POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
+  POSITION = getPostition(POSITION, PARAM_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);  //如果处在非编辑状态 led将半灭显示

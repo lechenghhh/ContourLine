@@ -18,7 +18,7 @@ Oscil<SIN1024_NUM_CELLS, AUDIO_RATE> aModulator(SIN1024_DATA);
 
 int voct = 500;
 int POSITION = 0;
-String function[4] = { "Carri", "ModFq", "ModLV", "Wave" };
+String param_name[4] = { "Carri", "ModFq", "ModLV", "Wave" };
 int param[4] = { 1, 2, 3, 4 };
 Q16n16 FMA;
 Q16n16 toneFreq, FMod, pitch;

@@ -17,11 +17,11 @@ Oscil<512, AUDIO_RATE> awOsc(TRIANGLE_ANALOGUE512_DATA);
 Oscil<512, AUDIO_RATE> awSub(SIN512_DATA);
 Oscil<512, AUDIO_RATE> awDetune(SIN512_DATA);
 
-const static int FUNC_LENGTH = 6;
+const static int PARAM_LENGTH = 6;
 byte POSITION = 0;
-String function[FUNC_LENGTH] = { "Pitch", "range", "FMA", "Sub", "Detun", "WaveT" };
-int param[FUNC_LENGTH] = { 0, 240, 0, 0, 0, 384 };
-bool* ledGroup[FUNC_LENGTH] = { Led_P, Led_R, Led_F, Led_S, Led_D, Led_T };
+String param_name[PARAM_LENGTH] = { "Pitch", "range", "FMA", "Sub", "Detun", "WaveT" };
+int param[PARAM_LENGTH] = { 0, 240, 0, 0, 0, 384 };
+bool* ledGroup[PARAM_LENGTH] = { Led_P, Led_R, Led_F, Led_S, Led_D, Led_T };
 byte tmp_d11 = 0;
 int voct = 500;
 byte subGain = 256;
@@ -40,11 +40,11 @@ void setup() {
 
 //三个旋钮 Carrier A0  ModFreq A1  ModLV A3    C
 void updateControl() {
-  POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
+  POSITION = getPostition(POSITION, PARAM_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                  //display  //用以展示控制
 
-  Serial.println(POSITION + function[POSITION] + param[POSITION]);  //func param Log
+  Serial.println(POSITION + param_name[POSITION] + param[POSITION]);  //func param Log
 
   //VOCT A7  CV-Freq A4  CV-LV A5
   voct = mozziAnalogRead(0);  //由于cltest的voct接口阻抗问题 这里需要乘以一个系数 调谐才比较准确

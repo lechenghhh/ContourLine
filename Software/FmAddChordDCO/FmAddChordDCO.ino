@@ -28,7 +28,7 @@
 #define LED_1_PIN 6
 #define LED_2_PIN 7
 #define LED_3_PIN 8
-#define FUNC_LENGTH 5  // menu length
+#define PARAM_LENGTH 5  // menu length
 
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc1(SIN2048_DATA);
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> osc2(SIN2048_DATA);
@@ -183,9 +183,9 @@ const static byte ADD_harm_table[8][256] PROGMEM = {
 };
 
 byte POSITION = 0;
-char function[FUNC_LENGTH][5] = { "Freq", "P1", "P2", "Mode", "WaveT" };
-short param[FUNC_LENGTH] = { 0, 0, 0, 0, 0 };
-bool* ledGroup[FUNC_LENGTH] = { Led_F, Led_1, Led_2, Led_M, Led_W };
+char param_name[PARAM_LENGTH][5] = { "Freq", "P1", "P2", "Mode", "WaveT" };
+short param[PARAM_LENGTH] = { 0, 0, 0, 0, 0 };
+bool* ledGroup[PARAM_LENGTH] = { Led_F, Led_1, Led_2, Led_M, Led_W };
 
 void setup() {
   Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -220,7 +220,7 @@ void setup() {
 }
 
 void updateControl() {
-  POSITION = getPostition(POSITION, FUNC_LENGTH);  //获取菜单下标
+  POSITION = getPostition(POSITION, PARAM_LENGTH);  //获取菜单下标
   param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
   displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);  //如果处在非编辑状态 led将半灭显示
