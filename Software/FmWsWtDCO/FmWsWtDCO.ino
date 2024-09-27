@@ -38,7 +38,7 @@
 #include "Module_Const.h"
 
 #define CONTROL_RATE 256           //Hz, powers of 2 are most reliable
-#define PARAM_LENGTH 8              //功能列表长度
+#define PARAM_LENGTH 8             //功能列表长度
 #define OSC_BASE1_FREQ 2143658     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
 #define OSC_BASE2_FREQ 4287316     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
 #define OSC_BASE3_FREQ 8574632     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
@@ -73,7 +73,7 @@ String param_name[PARAM_LENGTH] = { "Pitch", "Range", "ShapeG", "WaveS", "OPFreq
 int param[PARAM_LENGTH] = { 0, 360, 0, 0, 0, 0, 0, 0 };
 bool* ledGroup[PARAM_LENGTH] = { Led_P, Led_R, Led_G, Led_S, Led_F, Led_A, Led_T, Led_C };
 
-byte RangeType = 1;         //C0
+int RangeType = 1;          //C0
 Q16n16 BaseFreq = 2143658;  //C0
 Q16n16 FreqRange = 5200;    //2OCT
 byte ShapeSelf = 0;         //当前波形手动选择标志
@@ -95,36 +95,29 @@ void setup() {
 
 void updateControl() {
   /*控制参数获取与显示逻辑*/
-  POSITION = getPostition(POSITION, PARAM_LENGTH);                   //获取菜单下标
-  param[POSITION] = getParam(param[POSITION]);                      //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
-  displayLED(ledGroup[POSITION]);                                   //display  //用字母展示控制
-  if (getKnobEnable() == 0) displayLED(Led_NULL);                   //如果处在非编辑状态 led将半灭显示
+  POSITION = getPostition(POSITION, PARAM_LENGTH);                    //获取菜单下标
+  param[POSITION] = getParam(param[POSITION]);                        //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
+  displayLED(ledGroup[POSITION]);                                     //display  //用字母展示控制
+  if (getKnobEnable() == 0) displayLED(Led_NULL);                     //如果处在非编辑状态 led将半灭显示
   Serial.println(POSITION + param_name[POSITION] + param[POSITION]);  //func param Log
 
   /*音高 伏每八度*/
-  Pitch = param[0];                                                                                            //音高旋钮参数
-  OP1Freq = (BaseFreq + Pitch * FreqRange) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));  // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
+  Pitch = param[0];
+  RangeType = (param[1] >> 7) - 2;  //震荡范围
 
-  /*震荡范围*/
-  RangeType = param[1] >> 8;  //震荡范围
-  switch (RangeType) {
-    case 0:
-      BaseFreq = LFO_FREQENCY;
-      FreqRange = LFO_CV_COEFFICIENT;
-      break;
-    case 3:
-      BaseFreq = OSC_BASE3_FREQ;
-      FreqRange = OSC_VOCT_COEFFICIENT;
-      break;
-    case 2:
-      BaseFreq = OSC_BASE2_FREQ;
-      FreqRange = OSC_VOCT_COEFFICIENT;
-      break;
-    default:
-      BaseFreq = OSC_BASE1_FREQ;
-      FreqRange = OSC_VOCT_COEFFICIENT;
-      break;
+  if (RangeType < 0) {
+    RangeType = 0;
+    BaseFreq = LFO_FREQENCY;
+    FreqRange = LFO_CV_COEFFICIENT;
+  } else {
+    BaseFreq = OSC_BASE1_FREQ;
+    FreqRange = OSC_VOCT_COEFFICIENT;
   }
+  OP1Freq = ((BaseFreq + Pitch * FreqRange) << RangeType) * pow(2, (pgm_read_float(&(voctpow[mozziAnalogRead(VOCT_PIN)]))));  // V/oct 由于cltest0.6的voct接口阻抗问题 这里可能需要乘以一个系数 调谐才比较准确
+  // Serial.print(" OP1Freq= ");
+  // Serial.print(OP1Freq);
+  Serial.print(" OP1Freq>>16= ");
+  Serial.print(OP1Freq >> 16);
 
   /*波形渐变量*/
   ShapeGradient = param[2] >> 7;
@@ -241,6 +234,7 @@ void updateControl() {
   // Serial.println(WaveChange);
   // Serial.print("-ShapeGradient-");
   // Serial.println(ShapeGradient);
+  Serial.print("\n");
 }
 
 AudioOutput_t updateAudio() {
