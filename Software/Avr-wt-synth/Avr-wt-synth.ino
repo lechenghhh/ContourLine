@@ -90,7 +90,7 @@ float note_freq[61] = { 65.41, 69.30, 73.42, 77.78, 82.41, 87.31, 92.50, 98.00, 
 #define OBER_CV A2    // Ober CV                (obertone freq / pitch)
 #define GLITCH_CV A3  // Glitch amount CV       (FM intensity / glitch)
 
-#define PARAM_LENGTH 5  // menu length
+#define PARAM_LENGTH 6  // menu length
 
 /* variables (may be changed during the work)
  *  
@@ -138,10 +138,10 @@ typedef struct tFM {
 } tFM;
 
 byte POSITION = 0;
-char param_name[PARAM_LENGTH][5] = { "pitch", "wt", "mod", "ober", "glitch" };
-bool* ledGroup[PARAM_LENGTH] = { Led_P, Led_W, Led_M, Led_O, Led_G };
+char param_name[PARAM_LENGTH][5] = { "pitch", "wt", "mod", "ober", "glitch", "rand" };
+bool* ledGroup[PARAM_LENGTH] = { Led_P, Led_W, Led_M, Led_O, Led_G, Led_R };
 
-short param[PARAM_LENGTH] = { 1, 0, 0, 0, 0 };
+short param[PARAM_LENGTH] = { 1, 0, 0, 0, 0, 0 };
 
 // use this param_name only on debug! it has delay!
 void blink_led(int led) {
@@ -161,10 +161,10 @@ void setup() {
   initCtrl(4, 50, 12, 13, HIGH);  //初始化控制参数// 旋钮 旋钮修改启动范围 按钮1 按钮2
   initLED(2, 3, 4, 5, 6, 7, 8);   //初始化Led引脚
 
-  pinMode(DEBUG_LED, OUTPUT);
-  pinMode(TRIGGER_LED, OUTPUT);
+  // pinMode(DEBUG_LED, OUTPUT);
+  // pinMode(TRIGGER_LED, OUTPUT);
   pinMode(TRIGGER_PIN, INPUT);        // trigger cv
-  pinMode(RND_SWITCH, INPUT_PULLUP);  // Switch connected to GND
+  // pinMode(RND_SWITCH, INPUT_PULLUP);  // Switch connected to GND
   blink_led(DEBUG_LED);
   blink_led(TRIGGER_LED);
 
@@ -243,8 +243,8 @@ void mySetOsc(tFM fmSnd) {
 // Mozzi Update Controls
 void updateControl() {
   POSITION = getPostition(POSITION, PARAM_LENGTH);  //获取菜单下标
-  param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
-  displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
+  param[POSITION] = getParam(param[POSITION]);      //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
+  displayLED(ledGroup[POSITION]);                   //display  //用字母展示控制
 
   // for (int i = 2; i < 9; i++)                      //display  //简易参数展示//无需导入led显示库
   //   digitalWrite(i, HIGH);
@@ -254,6 +254,8 @@ void updateControl() {
   Serial.print(POSITION);         //func param
   Serial.print("=");              //func param
   Serial.print(param[POSITION]);  //func param
+  Serial.print(" isRND=");        //func param
+  Serial.print(isRND);            //func param
   Serial.print("\n");             //func param
 
   // Serial.print(" d12= ");         //func param
@@ -263,7 +265,8 @@ void updateControl() {
 
   // digital read
   isTrigger = (digitalRead(TRIGGER_PIN) == HIGH) ? true : false;  // trigger pin connected to an external +5V signal
-  isRND = (digitalRead(RND_SWITCH) == LOW) ? true : false;        // rnd switch connected to the GND
+  // isRND = (digitalRead(RND_SWITCH) == LOW) ? true : false;        // rnd switch connected to the GND
+  isRND = param[5] >> 9;  // rnd switch connected to the GND
 
 #ifdef DEBUG_INPUT
   Serial.print("        UpdateControl.Read:\tisTrigger=");
@@ -299,10 +302,10 @@ void updateControl() {
   int fmiKnobVal = param[4];   // read glitch knob           value is 0-1023
 
   // CVs
-  int carrCVVal = mozziAnalogRead(PITCH_CV) + (carrKnobVal>>2);  // read 1V/OCT pitch          value is 0-1023
-  int modCVVal = mozziAnalogRead(MOD_CV);                   // read modulation rate CV    value is 0-1023
-  int oberCVVal = mozziAnalogRead(OBER_CV);                 // read obertone CV           value is 0-1023
-  int fmiCVVal = mozziAnalogRead(GLITCH_CV);                // read glitch CV             value is 0-1023
+  int carrCVVal = mozziAnalogRead(PITCH_CV) + (carrKnobVal >> 2);  // read 1V/OCT pitch          value is 0-1023
+  int modCVVal = mozziAnalogRead(MOD_CV);                          // read modulation rate CV    value is 0-1023
+  int oberCVVal = mozziAnalogRead(OBER_CV);                        // read obertone CV           value is 0-1023
+  int fmiCVVal = mozziAnalogRead(GLITCH_CV);                       // read glitch CV             value is 0-1023
 
   tFM fmSnd;  // sound configuration instance
   // AutoMap has an issue: it return wrong value till it doesn't recive the maximum.
