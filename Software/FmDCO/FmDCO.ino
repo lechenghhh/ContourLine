@@ -3,6 +3,7 @@
 // #include <tables/cos2048_int8.h>  // table for Oscils to play
 #include <tables/cos256_int8.h>   // table for Oscils to play
 #include <tables/sin1024_int8.h>  // table for Oscils to play
+#include <ADSR.h>
 
 #include <FixMath.h>
 #include "Module_Ctrl.h"
@@ -15,13 +16,16 @@ const static float voctpow[1024] PROGMEM = {
 
 Oscil<SIN1024_NUM_CELLS, AUDIO_RATE> aCarrier(SIN1024_DATA);
 Oscil<SIN1024_NUM_CELLS, AUDIO_RATE> aModulator(SIN1024_DATA);
+ADSR<MOZZI_AUDIO_RATE, MOZZI_AUDIO_RATE> env1;
 
 int voct = 500;
 int POSITION = 0;
-String param_name[4] = { "Carri", "ModFq", "ModLV", "Wave" };
-int param[4] = { 1, 2, 3, 4 };
+String param_name[8] = { "Carri", "ModFq", "ModLV", "Wave", "Attk", "Decay", "Sus", "Release" };
+int param[8] = { 1, 1020, 3, 4, 0, 64, 64, 128 };
 Q16n16 FMA;
 Q16n16 toneFreq, FMod, pitch;
+int trig1;
+int adsr_gain = 0;
 
 void setup() {
   Serial.begin(115200);           //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -46,10 +50,23 @@ void updateControl() {
     digitalWrite(i, HIGH);
   digitalWrite(POSITION + 2, LOW);
 
-  Serial.print(POSITION);           //func param
-  Serial.println("func");           //func param
-  Serial.println(param[POSITION]);  //func param
-  Serial.println(" ");
+  Serial.print(POSITION);         //func param
+  Serial.print("func");           //func param
+  Serial.print(param[POSITION]);  //func param
+  // for (int i = 0; i < adsr_gain / 2; i++) Serial.print("|");//显示adsr电平
+  Serial.print(" \n");
+
+  //四段包络例子
+  env1.setLevels(255, 176, 96, 0);
+  env1.setTimes(param[4], param[5], param[6], param[7]);
+  if (digitalRead(11) == 1 && trig1 == 0) {
+    trig1 = 1;
+    env1.noteOn();
+  }
+  if (digitalRead(11) == 0 && trig1 == 1) {
+    trig1 = 0;
+    env1.noteOff();
+  }
 
   //VOCT A7  CV-Freq A4  CV-LV A5
   voct = mozziAnalogRead(0);  //由于cltest的voct接口阻抗问题 这里需要乘以一个系数 调谐才比较准确
@@ -72,8 +89,11 @@ void updateControl() {
 }
 
 AudioOutput_t updateAudio() {
+  env1.update();
+  adsr_gain = env1.next();
+  int lstFMA = adsr_gain * 4;
   // return MonoOutput::from8Bit(aCarrier.phMod(FMA * aModulator.next() >> 8));  //Old:内部仍然只有8位，在HIFI模式下将移位至14位
-  return MonoOutput::fromNBit(16, aCarrier.phMod(FMA * aModulator.next() >> 8) << 8);  //new:hifi
+  return MonoOutput::fromNBit(16, aCarrier.phMod(lstFMA * aModulator.next() >> 8) << 8);  //new:hifi
 }
 
 void loop() {
