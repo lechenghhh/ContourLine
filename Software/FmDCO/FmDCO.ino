@@ -7,6 +7,7 @@
 
 #include <FixMath.h>
 #include "Module_Ctrl.h"
+#include "Module_LEDDisplay.h"
 
 #define CONTROL_RATE 256  // Hz, powers of 2 are most reliable
 
@@ -20,45 +21,39 @@ ADSR<MOZZI_AUDIO_RATE, MOZZI_AUDIO_RATE> env1;
 
 int voct = 500;
 int POSITION = 0;
-String param_name[8] = { "Carri", "ModFq", "ModLV", "Wave", "Attk", "Decay", "Sus", "Release" };
-int param[8] = { 1, 1020, 3, 4, 0, 64, 64, 128 };
+String param_name[9] = { "Freq", "Octave", "ModFq", "ModLV", "Attk", "Decay", "Sus", "Release", "Wave" };
+int param[9] = { 0, 360, 3, 4, 0, 64, 64, 128 };
+bool* ledGroup[9] = { Led_P, Led_O, Led_F, Led_L, Led_A, Led_D, Led_S, Led_R, Led_W };
+
 Q16n16 FMA;
 Q16n16 toneFreq, FMod, pitch;
 int trig1;
-int adsr_gain = 0;
+int envgain = 0;
 
 void setup() {
   Serial.begin(115200);           //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
   initCtrl(4, 50, 12, 13, HIGH);  //初始化控制参数
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
-  pinMode(6, OUTPUT);
-  pinMode(7, OUTPUT);
-  pinMode(8, OUTPUT);
+  initLED(2, 3, 4, 5, 6, 7, 8);   //初始化Led引脚
+
   pinMode(11, INPUT_PULLUP);
   startMozzi(CONTROL_RATE);
 }
 
 //三个旋钮 Carrier A0  ModFreq A1  ModLV A3    C
 void updateControl() {
-  POSITION = getPostition(POSITION, 4);         //获取菜单下标
-  param[POSITION] = getParam(param[POSITION]);  //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
-  // displayLED(ledGroup[POSITION]);                      //display  //用以展示控制
-  for (int i = 2; i < 9; i++)
-    digitalWrite(i, HIGH);
-  digitalWrite(POSITION + 2, LOW);
+  POSITION = getPostition(POSITION, 9);            //获取菜单下标
+  param[POSITION] = getParam(param[POSITION]);     //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值
+  displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
+  if (getKnobEnable() == 0) displayLED(Led_NULL);  //如果处在非编辑状态 led将半灭显示
 
-  Serial.print(POSITION);         //func param
-  Serial.print("func");           //func param
-  Serial.print(param[POSITION]);  //func param
-  // for (int i = 0; i < adsr_gain / 2; i++) Serial.print("|");//显示adsr电平
+  Serial.print(param_name[POSITION]);  //func param
+  Serial.print(param[POSITION]);       //func param
+  for (int i = 0; i < adsr_gain / 2; i++) Serial.print("|");//显示adsr电平
   Serial.print(" \n");
 
   //四段包络例子
   env1.setLevels(255, 176, 96, 0);
-  env1.setTimes(param[4], param[5], param[6], param[7]);
+  env1.setTimes(param[5], param[6] + mozziAnalogRead(1), param[7] + mozziAnalogRead(1), param[8] + mozziAnalogRead(1));
   if (digitalRead(11) == 1 && trig1 == 0) {
     trig1 = 1;
     env1.noteOn();
@@ -67,20 +62,30 @@ void updateControl() {
     trig1 = 0;
     env1.noteOff();
   }
+  int BaseFreq = 2143658;
+  int FreqRange = 5200;
+  byte RangeType = param[1] >> 7;  //震荡范围
+  if (!RangeType) {
+    BaseFreq = 2143;
+    FreqRange = 1000;
+  }
 
   //VOCT A7  CV-Freq A4  CV-LV A5
   voct = mozziAnalogRead(0);  //由于cltest的voct接口阻抗问题 这里需要乘以一个系数 调谐才比较准确
   pitch = param[0];
-  toneFreq = (2143658 + pitch * 5200) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
+  toneFreq = ((BaseFreq + pitch * FreqRange) << RangeType) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
 
-  // FMod = ((toneFreq >> 8) * (param[1] / 2 + mozziAnalogRead(2) / 2));//old:
-  // FMA = ((FMod >> 16) * (1 + param[2] + mozziAnalogRead(3)));//old
-  FMod = (toneFreq >> 1) * ((param[1] + mozziAnalogRead(2)) >> 5);  //新版倍频算法 0.5-16倍频
-  FMA = ((FMod >> 16) * (1 + param[2] + mozziAnalogRead(3)));       //op2amount
+  // FMod = ((toneFreq >> 8) * (param[2] / 2 + mozziAnalogRead(2) / 2));//old:
+  // FMA = ((FMod >> 16) * (1 + param[3] + mozziAnalogRead(3)));//old
+  FMod = (toneFreq >> 1) * ((param[2] + mozziAnalogRead(2)) >> 5);       //新版倍频算法 0.5-16倍频
+  FMA = ((FMod >> 16) * (1 + param[3] + mozziAnalogRead(3) + envgain));  //op2amount
 
   aCarrier.setFreq_Q16n16(toneFreq);
   aModulator.setFreq_Q16n16(FMod);
 
+
+  Serial.print(toneFreq>>16);
+  Serial.print("--");
   // Serial.print(toneFreq);
   // Serial.print("--");
   // Serial.print(FMod);
@@ -90,10 +95,10 @@ void updateControl() {
 
 AudioOutput_t updateAudio() {
   env1.update();
-  adsr_gain = env1.next();
-  int lstFMA = adsr_gain * 4;
-  // return MonoOutput::from8Bit(aCarrier.phMod(FMA * aModulator.next() >> 8));  //Old:内部仍然只有8位，在HIFI模式下将移位至14位
-  return MonoOutput::fromNBit(16, aCarrier.phMod(lstFMA * aModulator.next() >> 8) << 8);  //new:hifi
+  envgain = env1.next() << 1;
+
+  return MonoOutput::from8Bit(aCarrier.phMod(FMA * aModulator.next() >> 8));  //Old:内部仍然只有8位，在HIFI模式下将移位至14位
+  // return MonoOutput::fromNBit(16, aCarrier.phMod(lstFMA * aModulator.next() >> 8) << 8);  //new:hifi
 }
 
 void loop() {
