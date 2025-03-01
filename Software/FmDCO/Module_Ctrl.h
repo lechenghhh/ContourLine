@@ -110,7 +110,7 @@ int getParam(int old_param) {
   // Serial.print("   mozziAnalogRead(KNOB) ");  //btn2
   // Serial.println(mozziAnalogRead(KNOB));      //btn2
   //旋钮事件
-  int knob_dec = mozziAnalogRead(KNOB) - old_param;  //检测旋钮进入原参数范围
+  int knob_dec = mozziAnalogRead(KNOB) - old_param;      // if arduino nano  //检测旋钮进入原参数范围
   if (-KNOB_CHANGE_RANGE < knob_dec && knob_dec < KNOB_CHANGE_RANGE) {
     knobEnable = 1;
   }
