@@ -15,6 +15,6 @@ EGTrig AudioOut
  4.         L                       FM Level                    调频算子幅度                  调频量
  5.         A                       Attack                      算子包络起音                   时长
  6.         D                       Decay                       算子包络衰减                   时长
- 7.         S                       Sustain                     算子包络起音                   时长(其实是个四段包络因此延音的逻辑有所不同)
+ 7.         S                       Sustain                     算子包络延音                   时长(其实是个四段包络因此延音的逻辑有所不同)
  8.         R                       Release                     算子包络释放                   时长
  9.         W                       WaveType                    波形                          约16种波形
