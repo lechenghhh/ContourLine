@@ -83,7 +83,6 @@ void setup() {
 void updateControl() {
   /*控制参数获取与显示逻辑*/
   POSITION = getPostition(POSITION, PARAM_LENGTH);                    //获取菜单下标
-  // param[POSITION] = getParam(param[POSITION]) / 4;                    //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值 //if lgt8f328p
   param[POSITION] = getParam(param[POSITION]);                        //用以注册按钮旋钮控制引脚 并获取修改成功的旋钮值 // if arduino nano
   displayLED(ledGroup[POSITION]);                                     //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);                     //如果处在非编辑状态 led将半灭显示
@@ -186,11 +185,6 @@ void updateControl() {
   }
 
   Serial.print("\n");
-}
-
-int myread(int pin) {
-  // return mozziAnalogRead(pin) / 4;  //if lgt8f328p
-  return mozziAnalogRead(pin);  // if arduino nano
 }
 
 AudioOutput_t updateAudio() {
