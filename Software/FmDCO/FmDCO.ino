@@ -37,15 +37,21 @@
 #include "Module_LEDDisplay.h"
 #include "Module_Ctrl.h"
 #include "Module_Const.h"
+// #define MOZZI_AUDIO_MODE MOZZI_OUTPUT_PWM  //输出模式
+#define MOZZI_AUDIO_MODE MOZZI_OUTPUT_2PIN_PWM  //输出模式
+#define MOZZI_AUDIO_PIN_1 9                     // GPIO pin number, can be any pin
+#define MOZZI_AUDIO_PIN_2 10                    // GPIO pin number, can be any pin
+#define MOZZI_AUDIO_RATE 32768                  // 音频采样率
+#define MOZZI_CONTROL_RATE 256                  // Hz, powers of 2 are most reliable
+#define MOZZI_AUDIO_BITS 12                     // 输出位数
 
-#define CONTROL_RATE 256           //Hz, powers of 2 are most reliable
-#define PARAM_LENGTH 9             //功能列表长度
-#define OSC_BASE1_FREQ 2143658     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
-#define OSC_BASE2_FREQ 4287316     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
-#define OSC_BASE3_FREQ 8574632     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
-#define OSC_VOCT_COEFFICIENT 5200  //振荡器可调范围 5200-两个八度
-#define LFO_FREQENCY 2143          //振荡器基础频率 0.1hz-4hz
-#define LFO_CV_COEFFICIENT 1000    //振荡器可调范围
+#define PARAM_LENGTH 9                          //功能列表长度
+#define OSC_BASE1_FREQ 2143658                  //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
+#define OSC_BASE2_FREQ 4287316                  //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
+#define OSC_BASE3_FREQ 8574632                  //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
+#define OSC_VOCT_COEFFICIENT 5200               //振荡器可调范围 5200-两个八度
+#define LFO_FREQENCY 2143                       //振荡器基础频率 0.1hz-4hz
+#define LFO_CV_COEFFICIENT 1000                 //振荡器可调范围
 /*   引脚定义   */
 #define KONB_PIN 4   //
 #define VOCT_PIN 0   //
@@ -77,7 +83,7 @@ void setup() {
   initCtrl(KONB_PIN, 16, BTN1_PIN, BTN2_PIN, HIGH);  //初始化控制参数// 旋钮 旋钮编辑状态启动范围 按钮1 按钮2
   initLED(2, 3, 4, 5, 6, 7, 8);                      //初始化Led引脚
 
-  startMozzi(CONTROL_RATE);
+  startMozzi();
 }
 
 void updateControl() {
