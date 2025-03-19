@@ -11,7 +11,13 @@
 
 #include "Module_LEDDisplay.h"
 #include "Module_Const.h"
-#define CONTROL_RATE 256  // Hz, powers of 2 are most reliable
+// #define MOZZI_AUDIO_MODE MOZZI_OUTPUT_PWM  //输出模式
+#define MOZZI_AUDIO_MODE MOZZI_OUTPUT_2PIN_PWM  //输出模式
+#define MOZZI_AUDIO_PIN_1 9                     // GPIO pin number, can be any pin
+#define MOZZI_AUDIO_PIN_2 10                    // GPIO pin number, can be any pin
+#define MOZZI_AUDIO_RATE 32768                  // 音频采样率
+#define MOZZI_CONTROL_RATE 256                  // Hz, powers of 2 are most reliable
+#define MOZZI_AUDIO_BITS 12                     // 输出位数
 
 Oscil<512, AUDIO_RATE> awOsc(TRIANGLE_ANALOGUE512_DATA);
 Oscil<512, AUDIO_RATE> awSub(SIN512_DATA);
