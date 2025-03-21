@@ -1,37 +1,12 @@
 #include <Mozzi.h>
 #include <Oscil.h>
-#include <WaveShaper.h>
 #include <FixMath.h>
 #include <ADSR.h>  // table for Oscils to play
 
-#include <tables/sin1024_int8.h>            // table for Oscils to play
-#include <tables/halfsinwindow512_uint8.h>  // sine table for oscillator
-#include <tables/square_no_alias512_int8.h>
-#include <tables/saw256_int8.h>
-#include <tables/waveshape_chebyshev_6th_256_int8.h>
-#include <tables/waveshape_chebyshev_5th_256_int8.h>
-
-#include <tables/phasor256_int8.h>
-#include <tables/uphasor256_uint8.h>
-#include <tables/halfsin256_uint8.h>
-#include <tables/cos256_int8.h>
-#include <tables/cosphase256_int8.h>
-#include <tables/square_analogue512_int8.h>
-#include <tables/waveshape1_softclip_int8.h>
-#include <tables/waveshape_sigmoid_int8.h>
-#include <tables/saw_analogue512_int8.h>
-#include <tables/whitenoise8192_int8.h>
-
-#include <tables/waveshape_tanh_int8.h>               //wt
-#include <tables/waveshape_sigmoid_int8.h>            //wt
-#include <tables/waveshape1_softclip_int8.h>          //wt
-#include <tables/waveshape2_softerclip_int8.h>        //wt
-#include <tables/waveshape_chebyshev_3rd_256_int8.h>  //wt
-#include <tables/waveshape_chebyshev_4th_256_int8.h>  //wt
-#include <tables/waveshape_chebyshev_5th_256_int8.h>  //wt
-#include <tables/waveshape_chebyshev_6th_256_int8.h>  //wt
-
-#include <tables/waveshape_compress_512_to_488_int16.h>  //wt compress
+#include <tables/sin2048_int8.h>
+#include <tables/triangle2048_int8.h>
+#include <tables/square_no_alias_2048_int8.h>
+#include <tables/saw2048_int8.h>
 
 /*lecheng的控制/显示模块封装*/
 #include "Module_LEDDisplay.h"
@@ -45,13 +20,13 @@
 #define MOZZI_CONTROL_RATE 256                  // Hz, powers of 2 are most reliable
 #define MOZZI_AUDIO_BITS 12                     // 输出位数
 
-#define PARAM_LENGTH 9                          //功能列表长度
-#define OSC_BASE1_FREQ 2143658                  //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
-#define OSC_BASE2_FREQ 4287316                  //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
-#define OSC_BASE3_FREQ 8574632                  //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
-#define OSC_VOCT_COEFFICIENT 5200               //振荡器可调范围 5200-两个八度
-#define LFO_FREQENCY 2143                       //振荡器基础频率 0.1hz-4hz
-#define LFO_CV_COEFFICIENT 1000                 //振荡器可调范围
+#define PARAM_LENGTH 9             //功能列表长度
+#define OSC_BASE1_FREQ 2143658     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
+#define OSC_BASE2_FREQ 4287316     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
+#define OSC_BASE3_FREQ 8574632     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
+#define OSC_VOCT_COEFFICIENT 5200  //振荡器可调范围 5200-两个八度
+#define LFO_FREQENCY 2143          //振荡器基础频率 0.1hz-4hz
+#define LFO_CV_COEFFICIENT 1000    //振荡器可调范围
 /*   引脚定义   */
 #define KONB_PIN 4   //
 #define VOCT_PIN 0   //
@@ -62,8 +37,8 @@
 #define BTN1_PIN 12  //
 #define BTN2_PIN 13  //
 
-Oscil<SIN1024_NUM_CELLS, AUDIO_RATE> osc1(SIN1024_DATA);
-Oscil<SIN1024_NUM_CELLS, AUDIO_RATE> osc2(SIN1024_DATA);
+Oscil<2048, AUDIO_RATE> osc1(SIN2048_DATA);
+Oscil<2048, AUDIO_RATE> osc2(SIN2048_DATA);
 ADSR<MOZZI_AUDIO_RATE, MOZZI_AUDIO_RATE> env1;
 
 Q16n16 POSITION = 0;
@@ -139,57 +114,40 @@ void updateControl() {
   osc2.setFreq_Q16n16(OP2Freq);  //给算子设置频率
 
   //波形类型
-  switch (param[8] >> 6) {
+  switch (param[8] >> 7) {
     default:
-      osc1.setTable(SIN1024_DATA);
+      osc1.setTable(SIN2048_DATA);
+      osc2.setTable(SIN2048_DATA);
       break;
     case 1:
-      osc1.setTable(WAVESHAPE_TANH_DATA);
+      osc1.setTable(SIN2048_DATA);
+      osc2.setTable(TRIANGLE2048_DATA);
       break;
-    case 2:  //2345
-      osc1.setTable(SQUARE_ANALOGUE512_DATA);
+    case 2:
+      osc1.setTable(SIN2048_DATA);
+      osc2.setTable(SQUARE_NO_ALIAS_2048_DATA);
       break;
     case 3:
-      osc1.setTable(WAVESHAPE1_SOFTCLIP_DATA);
+      osc1.setTable(SIN2048_DATA);
+      osc2.setTable(SAW2048_DATA);
       break;
     case 4:
-      osc1.setTable(WAVESHAPE_SIGMOID_DATA);
+      osc1.setTable(TRIANGLE2048_DATA);
+      osc2.setTable(TRIANGLE2048_DATA);
       break;
     case 5:
-      osc1.setTable(SQUARE_NO_ALIAS512_DATA);
+      osc1.setTable(TRIANGLE2048_DATA);
+      osc2.setTable(SIN2048_DATA);
       break;
     case 6:
-      osc1.setTable(SAW256_DATA);
+      osc1.setTable(SQUARE_NO_ALIAS_2048_DATA);
+      osc2.setTable(SIN2048_DATA);
       break;
     case 7:
-      osc1.setTable(SAW_ANALOGUE512_DATA);
-      break;
-    case 8:
-      osc1.setTable(HALFSINWINDOW512_DATA);
-      break;
-    case 9:
-      osc1.setTable(CHEBYSHEV_5TH_256_DATA);
-      break;
-    case 10:
-      osc1.setTable(PHASOR256_DATA);
-      break;
-    case 11:
-      osc1.setTable(UPHASOR256_DATA);
-      break;
-    case 12:
-      osc1.setTable(HALFSIN256_DATA);
-      break;
-    case 13:
-      osc1.setTable(COSPHASE256_DATA);
-      break;
-    case 14:
-      osc1.setTable(COS256_DATA);
-      break;
-    case 15:
-      osc1.setTable(WHITENOISE8192_DATA);
+      osc1.setTable(SAW2048_DATA);
+      osc2.setTable(SQUARE_NO_ALIAS_2048_DATA);
       break;
   }
-
   Serial.print("\n");
 }
 
