@@ -72,7 +72,7 @@ void updateControl() {
   if (tmpsub > 1023) tmpsub = 1023;
   subGain = tmpsub / 8;
 
-  masterGain = 255 - mozziAnalogRead(2) >> 2;  //a3为衰减器
+  // masterGain = 255 - (mozziAnalogRead(3) >> 2);  //a3为衰减器
 
   WaveType = param[5] / 256;
   switch (WaveType) {
