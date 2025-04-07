@@ -91,8 +91,7 @@ void updateControl() {
   Pitch = param[0];
   RangeType = (param[1] >> 7);  //震荡范围
 
-  if (RangeType < 0) {
-    RangeType = 0;
+  if (RangeType < 1) {
     BaseFreq = LFO_FREQENCY;
     FreqRange = LFO_CV_COEFFICIENT;
   } else {

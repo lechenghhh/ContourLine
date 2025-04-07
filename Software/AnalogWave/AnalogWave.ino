@@ -59,7 +59,7 @@ void updateControl() {
   pitch = param[0];
   toneFreq = (2143658 + pitch * 5200) * pow(2, (pgm_read_float(&(voctpow[voct]))));  // V/oct apply
   range = param[1] >> 6;
-  int rangePitch = (range + 1) / 2;
+  float rangePitch = (range + 1) / 4;
 
   Q16n16 FMA = mozziAnalogRead(1) * 60000 * param[2] / 512;  //调频乘数
 
@@ -67,7 +67,7 @@ void updateControl() {
   Q16n16 tmpDetune = awDetune.next() * param[4] * 1000;
 
   awOsc.setFreq_Q16n16((toneFreq + FMA + tmpDetune) * rangePitch);
-  awSub.setFreq_Q16n16(toneFreq * rangePitch >> 2);
+  awSub.setFreq_Q16n16(toneFreq * rangePitch / 4);
 
   int tmpsub = param[3] + mozziAnalogRead(2);
   if (tmpsub > 1023) tmpsub = 1023;
