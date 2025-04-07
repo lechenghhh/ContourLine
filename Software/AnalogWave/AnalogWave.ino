@@ -35,6 +35,7 @@ byte range = 1;
 byte WaveType = 0;
 Q16n16 FMA;
 Q16n16 toneFreq, FMod, pitch;
+byte syncState = 0;
 
 void setup() {
   Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
@@ -60,7 +61,7 @@ void updateControl() {
   range = param[1] >> 6;
   int rangePitch = (range + 1) / 2;
 
-  Q16n16 FMA = mozziAnalogRead(1) * 60000 * param[2] / 64;  //调频乘数
+  Q16n16 FMA = mozziAnalogRead(1) * 60000 * param[2] / 512;  //调频乘数
 
   awDetune.setFreq(0.17f);
   Q16n16 tmpDetune = awDetune.next() * param[4] * 1000;
@@ -74,7 +75,8 @@ void updateControl() {
 
   // masterGain = 255 - (mozziAnalogRead(3) >> 2);  //a3为衰减器
 
-  WaveType = param[5] / 256;
+  WaveType = (param[5] + mozziAnalogRead(3)) / 256;
+  WaveType = constrain(WaveType, 0, 3);
   switch (WaveType) {
     default:
       awOsc.setTable(SIN512_DATA);
@@ -90,11 +92,22 @@ void updateControl() {
       break;
   }
 
+  //hard sync
+  if (digitalRead(11) == 1 && syncState == 0) {
+    syncState = 1;
+    awOsc.setPhase(0);
+    awSub.setPhase(0);
+  } else if (digitalRead(11) == 0 && syncState == 1) {
+    syncState = 0;
+  }
+
   // Serial.print("-subGain-");
   // Serial.print(subGain);
   // Serial.print("-WaveType-");
   // Serial.print(WaveType);
   // Serial.println(FMA);
+  // Serial.print(" masterGain=");
+  // Serial.println(masterGain);
 }
 
 AudioOutput_t updateAudio() {
