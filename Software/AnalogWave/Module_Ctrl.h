@@ -101,6 +101,11 @@ int getPostition(int position, int functionLength) {
   return position;
 }
 
+int myread(int pin) {
+  // return mozziAnalogRead(pin) / 4;  //if lgt8f328p
+  return mozziAnalogRead(pin);  // if arduino nano
+}
+
 /*
   根据旧的值传入该方法判断旋钮编辑状态来返回新修改的值
 */
@@ -110,12 +115,12 @@ int getParam(int old_param) {
   // Serial.print("   mozziAnalogRead(KNOB) ");  //btn2
   // Serial.println(mozziAnalogRead(KNOB));      //btn2
   //旋钮事件
-  int knob_dec = mozziAnalogRead(KNOB) - old_param;  //检测旋钮进入原参数范围
+  int knob_dec = myread(KNOB) - old_param;  // if arduino nano  //检测旋钮进入原参数范围
   if (-KNOB_CHANGE_RANGE < knob_dec && knob_dec < KNOB_CHANGE_RANGE) {
     knobEnable = 1;
   }
   if (knobEnable == 1) {  //进入范围后 则可以调节当前参数
-    old_param = mozziAnalogRead(KNOB);
+    old_param = myread(KNOB);
   }
   return old_param;
 }
