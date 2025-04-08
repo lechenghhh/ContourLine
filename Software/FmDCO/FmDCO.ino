@@ -22,8 +22,6 @@
 
 #define PARAM_LENGTH 9             //功能列表长度
 #define OSC_BASE1_FREQ 2143658     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
-#define OSC_BASE2_FREQ 4287316     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
-#define OSC_BASE3_FREQ 8574632     //振荡器基础频率 约32.7hz  org:apply 2270658 1=c#
 #define OSC_VOCT_COEFFICIENT 5200  //振荡器可调范围 5200-两个八度
 #define LFO_FREQENCY 2143          //振荡器基础频率 0.1hz-4hz
 #define LFO_CV_COEFFICIENT 1000    //振荡器可调范围
