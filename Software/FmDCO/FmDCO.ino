@@ -105,7 +105,7 @@ void updateControl() {
   /*FM量*/
   OP2Freq = (OP1Freq >> 1) * ((param[2] + myread(CV2_PIN)) >> 5);  //新版倍频算法 0.5-16倍频
   // OP2Freq = (OP1Freq >> 5) * ((param[2] + myread(CV2_PIN)) >> 5);           //新版倍频
-  OP2Amt = ((OP2Freq >> 16) * (1 + param[3] + myread(CV3_PIN) + envgain));  //op2amount
+  OP2Amt = ((OP2Freq >> 16) * (1 + (param[3] + myread(CV3_PIN) + envgain) / 4));  //op2amount
 
   osc1.setFreq_Q16n16(OP1Freq);  //给主波形设置频率
   osc2.setFreq_Q16n16(OP2Freq);  //给算子设置频率
