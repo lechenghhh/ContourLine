@@ -10,7 +10,7 @@
 #include "Module_Ctrl.h"
 #include "Module_LEDDisplay.h"
 
-#define CONTROL_RATE 128
+#define CONTROL_RATE 64
 
 #define V_OCT_PIN A0
 
@@ -188,7 +188,7 @@ short param[PARAM_LENGTH] = { 0, 0, 0, 0, 0 };
 bool* ledGroup[PARAM_LENGTH] = { Led_F, Led_1, Led_2, Led_M, Led_W };
 
 void setup() {
-  Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
+  // Serial.begin(115200);  //使用Serial.begin()函数来初始化串口波特率,参数为要设置的波特率
   startMozzi(CONTROL_RATE);
   pinMode(LED_1_PIN, OUTPUT);
   pinMode(LED_2_PIN, OUTPUT);
@@ -225,12 +225,12 @@ void updateControl() {
   displayLED(ledGroup[POSITION]);                  //display  //用字母展示控制
   if (getKnobEnable() == 0) displayLED(Led_NULL);  //如果处在非编辑状态 led将半灭显示
 
-  Serial.print(" mode=");           //mode 0: FM mode 1: add, mode 2: chord
-  Serial.print(mode);               //mode
-  Serial.print(" func");            //func param
-  Serial.print(POSITION);           //func param
-  Serial.print("=");                //func param
-  Serial.println(param[POSITION]);  //func param
+  // Serial.print(" mode=");           //mode 0: FM mode 1: add, mode 2: chord
+  // Serial.print(mode);               //mode
+  // Serial.print(" func");            //func param
+  // Serial.print(POSITION);           //func param
+  // Serial.print("=");                //func param
+  // Serial.println(param[POSITION]);  //func param
 
   read_inputs();
   mode = param[3] >> 8;  // mode 0: FM mode 1: add, mode 2: chord
